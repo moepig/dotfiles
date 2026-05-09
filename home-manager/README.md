@@ -22,7 +22,7 @@ curl -L https://nixos.org/nix/install | sh -s -- --daemon
 ### 3. home-manager を適用
 
 ```bash
-nix run home-manager/master -- switch --flake ~/.config/home-manager
+nix run home-manager/master -- switch --flake ~/.config/home-manager --impure
 ```
 
-完了後は `home-manager switch --flake ~/.config/home-manager` で更新できる。
+完了後は `home-manager switch --flake ~/.config/home-manager --impure` で更新できる。
