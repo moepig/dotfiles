@@ -1,0 +1,8 @@
+{{- /* WSL 上の Linux と、それ以外の Linux を区別する。カーネルの osrelease に microsoft を含むかで判定する。 */ -}}
+{{- $isWSL := false -}}
+{{- if eq .chezmoi.os "linux" -}}
+{{-   $isWSL = contains "microsoft" (lower .chezmoi.kernel.osrelease) -}}
+{{- end -}}
+
+[data]
+    isWSL = {{ $isWSL }}

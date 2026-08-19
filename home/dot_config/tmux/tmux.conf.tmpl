@@ -127,10 +127,15 @@ set-window-option -g mode-keys vi
 # Alt + A でコピーモード
 bind-key -n M-a copy-mode
 
-# Windows (WSL) クリップボードサポート
-# y / Enter でコピーして clip.exe に渡す
-bind-key -T copy-mode-vi y     send-keys -X copy-pipe-and-cancel 'iconv -f utf-8 -t utf-16le | clip.exe'
-bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel 'iconv -f utf-8 -t utf-16le | clip.exe'
+# クリップボード連携
+# y / Enter でコピーし、環境に応じたクリップボードコマンドへ渡す
+# WSL 以外の Linux では xclip を要する
+{{- $copyCommand := "xclip -selection clipboard" -}}
+{{- if .isWSL -}}
+{{-   $copyCommand = "iconv -f utf-8 -t utf-16le | clip.exe" -}}
+{{- end }}
+bind-key -T copy-mode-vi y     send-keys -X copy-pipe-and-cancel '{{ $copyCommand }}'
+bind-key -T copy-mode-vi Enter send-keys -X copy-pipe-and-cancel '{{ $copyCommand }}'
 
 
 # ---

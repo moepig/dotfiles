@@ -14,7 +14,8 @@
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
-      username = builtins.getEnv "USER";
+      # chezmoi が apply 時に埋め込む。--impure を不要にするため、getEnv を使わない。
+      username = "{{ .chezmoi.username }}";
     in
     {
       homeConfigurations.${username} = home-manager.lib.homeManagerConfiguration {
