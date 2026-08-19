@@ -5,7 +5,7 @@ set -euo pipefail
 # tmux.conf のプラグイン定義が変わったときのみ再実行させるためのハッシュ。
 # tmux.conf sha256: {{ include "dot_config/tmux/tmux.conf.tmpl" | sha256sum }}
 
-TPM_BIN="$HOME/.tmux/plugins/tpm/bin/install_plugins"
+TPM_BIN="$HOME/.config/tmux/plugins/tpm/bin/install_plugins"
 
 # tmux 未導入、または TPM の取得前は何もしない。次回の apply で再試行される。
 if ! command -v tmux >/dev/null 2>&1 || [[ ! -x "$TPM_BIN" ]]; then

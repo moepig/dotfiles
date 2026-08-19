@@ -15,12 +15,12 @@ chezmoi は、リポジトリ内のソースディレクトリの内容をホー
 | `~/.config/nix/nix.conf` | Nix の設定 | Linux, WSL |
 | `~/.config/home-manager/flake.nix` | home-manager の flake 定義 | Linux, WSL |
 | `~/.config/home-manager/home.nix` | home-manager が導入するパッケージと有効化する設定 | Linux, WSL |
-| `~/.tmux/plugins/tpm` | TPM (tmux plugin manager) のリポジトリ | Linux, WSL |
+| `~/.config/tmux/plugins/tpm` | TPM (tmux plugin manager) のリポジトリ | Linux, WSL |
 
 Windows へ適用される項目は現時点で存在しない。上記はいずれも `.chezmoiignore` によって Windows では除外される。
 
 > [!NOTE]
-> `~/.config/tmux/plugins` 配下のプラグイン本体と `~/.config/home-manager/flake.lock` は、TPM と Nix がそれぞれ生成する。chezmoi の管理対象ではない。
+> `~/.config/tmux/plugins` 配下のうち chezmoi が管理するのは TPM 自身のみである。同じディレクトリへ展開される他のプラグインは TPM が、`~/.config/home-manager/flake.lock` は Nix が生成する。
 
 ## リポジトリ構成
 
@@ -143,6 +143,9 @@ sudo snap install chezmoi --classic
 rm -f ~/.config/tmux/tmux.conf ~/.config/tmux/git-pane-info.sh \
       ~/.config/nix/nix.conf \
       ~/.config/home-manager/flake.nix ~/.config/home-manager/home.nix
+
+# TPM の配置先が ~/.config/tmux/plugins/tpm へ変わったため、旧配置を削除する
+rm -rf ~/.tmux/plugins/tpm
 
 mkdir -p ~/.local/share
 ln -s ~/src/dotfiles ~/.local/share/chezmoi

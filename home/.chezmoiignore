@@ -3,12 +3,8 @@
 .config/tmux
 .config/nix
 .config/home-manager
-.tmux
 {{- end }}
 
 {{- if ne .chezmoi.os "windows" }}
 {{- /* Windows 専用のターゲットを追加した場合は、ここへ除外を書く */}}
 {{- end }}
-
-{{- /* TPM が自身の管理下に展開するプラグインを、chezmoi の管理対象から外す */}}
-.config/tmux/plugins

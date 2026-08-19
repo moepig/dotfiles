@@ -1,10 +1,11 @@
 {{- if ne .chezmoi.os "windows" -}}
 # TPM (tmux plugin manager)。tmux.conf の末尾から起動する。
-# プラグイン本体は TPM が ~/.config/tmux/plugins 配下へ展開するため、chezmoi の管理対象ではない。
-[".tmux/plugins/tpm"]
+# 配置先は TPM 自身がプラグインを展開するディレクトリと同一である。
+# 同じディレクトリに展開される他のプラグインは、chezmoi の管理対象ではない。
+[".config/tmux/plugins/tpm"]
     type = "git-repo"
     url = "https://github.com/tmux-plugins/tpm.git"
     refreshPeriod = "168h"
-[".tmux/plugins/tpm".pull]
+[".config/tmux/plugins/tpm".pull]
     args = ["--ff-only"]
 {{ end -}}
