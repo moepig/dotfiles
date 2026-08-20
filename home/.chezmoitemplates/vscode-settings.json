@@ -1,0 +1,18 @@
+{
+    "window.title": "${rootName}",
+    "window.zoomLevel": -1,
+
+    "editor.fontSize": 13,
+    "terminal.integrated.fontSize": 13,
+    "debug.console.fontSize": 13,
+    "chat.editor.fontSize": 13,
+    "scm.inputFontSize": 13,
+    "markdown.preview.fontSize": 13,
+
+    "files.eol": "\n",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[terraform]": {
+        "editor.defaultFormatter": "HashiCorp.terraform",
+        "editor.formatOnSave": true
+    }
+}

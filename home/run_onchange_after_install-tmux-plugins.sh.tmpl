@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # tmux.conf のプラグイン定義が変わったときのみ再実行させるためのハッシュ。
-# tmux.conf sha256: {{ include "dot_config/tmux/tmux.conf.tmpl" | sha256sum }}
+# tmux.conf sha256: {{ include "private_dot_config/tmux/tmux.conf.tmpl" | sha256sum }}
 
 TPM_BIN="$HOME/.config/tmux/plugins/tpm/bin/install_plugins"
 

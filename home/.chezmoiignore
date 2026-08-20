@@ -3,8 +3,13 @@
 .config/tmux
 .config/nix
 .config/home-manager
+{{- /* VS Code のユーザ設定は AppData 側を適用する */}}
+.config/Code
 {{- end }}
 
 {{- if ne .chezmoi.os "windows" }}
-{{- /* Windows 専用のターゲットを追加した場合は、ここへ除外を書く */}}
+{{- /* Windows 専用のターゲット */}}
+AppData
+{{- /* WezTerm は Windows 上でのみ用いる */}}
+.config/wezterm
 {{- end }}
