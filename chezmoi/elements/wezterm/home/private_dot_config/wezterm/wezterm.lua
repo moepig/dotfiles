@@ -730,7 +730,35 @@ end
 -- 分け合うためである。一覧の表示は Alt+h が担う。
 
 -- leader を押している間に表示する、leader に続くキーの一覧。
-local leader_hint = 'LEADER  Ctrl+a 送出 │ r 設定の再読み込み'
+local leader_hint = 'LEADER  Ctrl+a 送出 │ r 設定の再読み込み │ s セッションの保存'
+
+-- 表示している通知。操作の完了を知らせる一時的な表示であり、表示していない場合は nil である。
+local notice = nil
+
+-- 通知を表示し続ける秒数。
+local notice_seconds = 2
+
+-- 通知を消す予定を見分ける番号。表示のたびに増やす。
+local notice_generation = 0
+
+-- 右端の左端に表示する通知を組み立てる。
+-- 文字色は、leader に続くキーの一覧と同じく端末の色から採り、接続先を表すどの色とも重ならない。
+-- 戻り値: wezterm.format による書式付きの文字列。末尾に、続く表示との間隔を含む。
+--         表示している通知が無い場合は空文字列
+local function notice_status()
+    if notice == nil then
+        return ''
+    end
+
+    return wezterm.format {
+        { Background = { Color = palette.bar_bg } },
+        { Attribute = { Intensity = 'Bold' } },
+        { Foreground = { AnsiColor = 'Green' } },
+        { Text = notice },
+        { Attribute = { Intensity = 'Normal' } },
+        { Text = '   ' },
+    }
+end
 
 -- 右端の左端に表示するブランチ名を組み立てる。
 -- 対象はアクティブなペインである。文字色はどの接続先の色とも異なる accent とし、
@@ -832,10 +860,40 @@ local function status_hints(window)
     return wezterm.format(items)
 end
 
-wezterm.on('update-status', function(window, pane)
+-- 右端の表示を組み立てて置く。左端には何も置かない。
+-- update-status による定期的な更新のほか、通知の表示と消去が、その時点で呼ぶ。
+-- window: Window
+-- pane: アクティブなペインの Pane
+local function update_status(window, pane)
     window:set_left_status('')
-    window:set_right_status(branch_status(pane) .. pane_list(window) .. status_hints(window))
-end)
+    window:set_right_status(
+        notice_status() .. branch_status(pane) .. pane_list(window) .. status_hints(window)
+    )
+end
+
+wezterm.on('update-status', update_status)
+
+-- 通知を表示する。表示は notice_seconds の後に消える。
+-- update-status は 1 秒ごとであり、その次の更新を待つと操作との間が空くため、
+-- 表示と消去のいずれも、その時点で右端を組み立て直す。
+-- window: Window
+-- text: 表示する文字列
+local function notify(window, text)
+    notice = text
+    notice_generation = notice_generation + 1
+    local generation = notice_generation
+    update_status(window, window:active_pane())
+
+    wezterm.time.call_after(notice_seconds, function()
+        -- 消す対象は自身が表示した通知に限る。表示している間に次の通知を表示した場合、
+        -- 消す役はそちらの予定が担う。
+        if notice_generation ~= generation then
+            return
+        end
+        notice = nil
+        update_status(window, window:active_pane())
+    end)
+end
 
 
 -- ---
@@ -889,15 +947,17 @@ resurrect.state_manager.periodic_save {
 
 -- 手動での保存。定期的な保存の間隔を待たずに、押した時点の構成を保存する。
 -- 保存する内容と保存先は定期的な保存と同じであり、次の起動はこの保存を復元する。
+-- 保存は端末画面へ何も残さないため、完了を通知としてタブバーの右端へ表示する。
 -- tmux-resurrect の prefix + Ctrl-s に対応する。
 -- 割り当てを Key bindings の節ではなくここへ置くのは、動作の実体である resurrect を
 -- この節で読み込むためである。一覧は key_help が持つため、双方を更新すること。
 table.insert(config.keys, {
     key = 's',
     mods = 'LEADER',
-    action = wezterm.action_callback(function()
+    action = wezterm.action_callback(function(window)
         resurrect.state_manager.save_state(resurrect.workspace_state.get_workspace_state())
         resurrect.state_manager.write_current_state(wezterm.mux.get_active_workspace(), 'workspace')
+        notify(window, 'セッションを保存しました')
     end),
 })
 
