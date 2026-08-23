@@ -55,6 +55,7 @@ tmux の window はタブ、pane はペインへ対応する。WezTerm の既定
 | Ctrl+a | leader | `set -g prefix C-a` |
 | Ctrl+a Ctrl+a | Ctrl+a を接続先へ送る | `bind-key C-a send-prefix` |
 | Ctrl+a r | 設定の再読み込み | `bind-key r source-file` |
+| Ctrl+a s | セッションの保存 | tmux-resurrect の prefix + Ctrl-s |
 | Alt+Shift+w | launcher menu を開く | - |
 | Alt+1, Alt+2, Alt+3 | 接続先を指定したタブの新規作成 | - |
 | Alt+w | タブの新規作成 | `new-window` |
@@ -141,8 +142,10 @@ WezTerm はペインごとのヘッダを持たないため、ペインの情報
 
 スクロールバックの復元は local ドメインのペインに限る。WSL のペインの内容は保存しない。プラグインが復元に用いる出力の注入が、local ドメインでのみ行えるためである。
 
+Ctrl+a s は、間隔を待たずにその時点の構成を保存する。保存する内容と保存先は定期的な保存と同じであり、次の起動はこの保存を復元する。tmux-resurrect の prefix + Ctrl-s に対応する。
+
 > [!IMPORTANT]
-> 保存は 60 秒ごとに行い、WezTerm の終了時には行わない。WezTerm が終了時のイベントを持たないためである。最後の保存から終了までの変更は復元されない。
+> 定期的な保存は 60 秒ごとに行い、WezTerm の終了時には行わない。WezTerm が終了時のイベントを持たないためである。最後の保存から終了までの変更は復元されないため、終了の前に構成を残す場合は Ctrl+a s で保存する。
 
 > [!NOTE]
 > 保存の繰り返しは、設定を評価するたびに開始し直す。繰り返しの予定は設定を評価し直した時点で失われるため、開始済みを記録して 2 回目以降の評価で開始を省くと、保存が一度も行われない。

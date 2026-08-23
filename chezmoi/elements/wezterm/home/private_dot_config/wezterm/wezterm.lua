@@ -227,6 +227,7 @@ local key_help = {
     { key = 'Ctrl+a', desc = 'leader' },
     { key = 'Ctrl+a Ctrl+a', desc = 'Ctrl+a を接続先へ送る' },
     { key = 'Ctrl+a r', desc = '設定の再読み込み' },
+    { key = 'Ctrl+a s', desc = 'セッションの保存' },
     { section = 'Tab' },
     { key = 'Alt+w', desc = 'タブの新規作成' },
     { key = 'Alt+1 Alt+2 Alt+3', desc = '接続先を指定したタブの新規作成' },
@@ -851,6 +852,20 @@ resurrect.state_manager.periodic_save {
     interval_seconds = save_interval_seconds,
     save_workspaces = true,
 }
+
+-- 手動での保存。定期的な保存の間隔を待たずに、押した時点の構成を保存する。
+-- 保存する内容と保存先は定期的な保存と同じであり、次の起動はこの保存を復元する。
+-- tmux-resurrect の prefix + Ctrl-s に対応する。
+-- 割り当てを Key bindings の節ではなくここへ置くのは、動作の実体である resurrect を
+-- この節で読み込むためである。一覧は key_help が持つため、双方を更新すること。
+table.insert(config.keys, {
+    key = 's',
+    mods = 'LEADER',
+    action = wezterm.action_callback(function()
+        resurrect.state_manager.save_state(resurrect.workspace_state.get_workspace_state())
+        resurrect.state_manager.write_current_state(wezterm.mux.get_active_workspace(), 'workspace')
+    end),
+})
 
 -- 復元の対象とする workspace の記録。起動時の復元はこの記録を読む。
 wezterm.on('resurrect.state_manager.periodic_save.finished', function()
