@@ -265,19 +265,15 @@ end
 -- Path
 -- ---
 
--- パスの末尾から depth 個の要素を / で連結して返す。区切りは / と \ の双方を受け付ける。
+-- パスの末尾の要素を返す。区切りは / と \ の双方を受け付ける。
 -- path: 末尾に区切りを含んでもよいパス
--- depth: 連結する要素の個数。1 以上
--- 戻り値: 連結した文字列。要素が 1 つも無い場合は nil
-local function tail_path(path, depth)
-    local parts = {}
+-- 戻り値: 末尾の要素。要素が 1 つも無い場合は nil
+local function base_name(path)
+    local name = nil
     for part in path:gmatch('[^/\\]+') do
-        table.insert(parts, part)
+        name = part
     end
-    if #parts == 0 then
-        return nil
-    end
-    return table.concat(parts, '/', math.max(#parts - depth + 1, 1), #parts)
+    return name
 end
 
 -- ---
@@ -322,14 +318,13 @@ local function state_of_pane(pane)
     }
 end
 
--- ペインのカレントディレクトリを表す文字列を返す。
+-- ペインのカレントディレクトリ名を表す文字列を返す。
 -- state: ペインの状態
--- depth: パスの末尾から用いる要素の個数
 -- 戻り値: 表示する文字列。カレントディレクトリが得られない場合はペインのタイトル。
 --         いずれも得られない場合は "-"
-local function cwd_label(state, depth)
+local function cwd_label(state)
     if state.cwd ~= nil then
-        local label = tail_path(state.cwd, depth)
+        local label = base_name(state.cwd)
         if label ~= nil then
             return label
         end
@@ -515,7 +510,7 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, conf, hover, max_width
     local state = state_of_info(tab.active_pane)
     local target = target_of(state)
     -- タブの左の空白 1 文字分と、カレントディレクトリ名の左右の空白 1 文字分を差し引いた幅へ収める。
-    local title = wezterm.truncate_right(cwd_label(state, 1), math.max(max_width - 3, 1))
+    local title = wezterm.truncate_right(cwd_label(state), math.max(max_width - 3, 1))
 
     -- アクティブなタブは接続先の色を背景色とし、文字色を暗い側とする。アクティブでないタブは
     -- タブの領域の色を背景色とし、接続先の色を文字色とする。マウスが乗っているタブは背景色のみを変える。
@@ -713,17 +708,14 @@ end
 
 -- 右端に表示するペイン一覧を組み立てる。
 -- 対象はアクティブなタブのペインである。ペインごとに、接続先の短縮名と
--- カレントディレクトリを並べ、アクティブなペインを明るい背景色、太字、明るい文字色で強調し、
+-- カレントディレクトリ名を並べ、アクティブなペインを明るい背景色、太字、明るい文字色で強調し、
 -- ズームしているペインには Z を付ける。
 -- 短縮名の文字色は接続先の種別を表し、タブおよび接続先の一覧と同じ色である。
--- アクティブでないペインは、短縮名にもカレントディレクトリにも彩度を落とした色を用いる。
+-- アクティブでないペインは、短縮名にもカレントディレクトリ名にも彩度を落とした色を用いる。
 -- WezTerm はペインごとのヘッダを持たないため、ペインの情報はこの一覧が担う。
 -- window: Window
--- cols: タブの桁数
 -- 戻り値: wezterm.format による書式付きの文字列。末尾に、続く表示との間隔を含む
-local function pane_list(window, cols)
-    local depth = cols >= 140 and 2 or 1
-
+local function pane_list(window)
     -- 一覧の占める領域は背景色で示す。領域には、ペインの間の区切りと、ペインごとの左右の
     -- 空白 1 文字分を含む。空白を一覧の両端ではなくペインごとに持たせることで、アクティブな
     -- ペインへ敷く背景色が左右の空白まで届き、かつ一覧の桁数がどのペインをアクティブとするかに
@@ -742,7 +734,7 @@ local function pane_list(window, cols)
 
         local state = state_of_pane(info.pane)
         local target = target_of(state)
-        local label = cwd_label(state, depth)
+        local label = cwd_label(state)
         if info.is_zoomed then
             label = label .. ' Z'
         end
@@ -792,10 +784,8 @@ local function status_hints(window)
 end
 
 wezterm.on('update-status', function(window, pane)
-    local cols = window:active_tab():get_size().cols
-
     window:set_left_status('')
-    window:set_right_status(branch_status(pane) .. pane_list(window, cols) .. status_hints(window))
+    window:set_right_status(branch_status(pane) .. pane_list(window) .. status_hints(window))
 end)
 
 
