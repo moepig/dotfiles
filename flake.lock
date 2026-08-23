@@ -39,7 +39,20 @@
     "root": {
       "inputs": {
         "home-manager": "home-manager",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "wezterm-shell-integration": "wezterm-shell-integration"
+      }
+    },
+    "wezterm-shell-integration": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-n1v+NgovGbsUDthwYy0Wxge17CfMtWSh4zIMu3gujlI=",
+        "type": "file",
+        "url": "https://raw.githubusercontent.com/wezterm/wezterm/76b606ec597a3c0263fa60321548637451c0a547/assets/shell-integration/wezterm.sh"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://raw.githubusercontent.com/wezterm/wezterm/76b606ec597a3c0263fa60321548637451c0a547/assets/shell-integration/wezterm.sh"
       }
     }
   },

@@ -22,6 +22,8 @@ Home Manager は、宣言した内容からホームディレクトリの状態�
 │   ├── home.nix
 │   └── work.nix
 ├── features/                     構成が取り込む機能の単位
+│   ├── bash/
+│   │   └── default.nix           対話シェルの初期化ファイルの配置と読み込み
 │   ├── common/
 │   │   └── default.nix           どの構成にも取り込む基盤の設定
 │   ├── dnsutils/
@@ -34,11 +36,13 @@ Home Manager は、宣言した内容からホームディレクトリの状態�
 │   │   └── default.nix           pre-commit
 │   ├── python/
 │   │   └── default.nix           Python
-│   └── tmux/
-│       ├── default.nix           tmux 本体と設定ファイルの配置
-│       ├── tmux.conf
-│       ├── git-pane-info.sh
-│       └── copy-to-clipboard.sh
+│   ├── tmux/
+│   │   ├── default.nix           tmux 本体と設定ファイルの配置
+│   │   ├── tmux.conf
+│   │   ├── git-pane-info.sh
+│   │   └── copy-to-clipboard.sh
+│   └── wezterm/
+│       └── default.nix           WezTerm のシェル統合スクリプトの配置と読み込み
 └── docs/
     ├── overview.md               管理対象とドキュメントの一覧
     ├── usage/                    手順のドキュメント

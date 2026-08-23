@@ -4,9 +4,15 @@
 
 ## flake の入力
 
-入力は nixpkgs と Home Manager の 2 つである。nixpkgs は nixos-unstable を、Home Manager は master を指す。Home Manager の nixpkgs は、入力の nixpkgs へ追従させる。
+入力を、以下にまとめる。
 
-固定した版は `flake.lock` が保持する。
+| 入力 | 種別 | 指す先 |
+| --- | --- | --- |
+| `nixpkgs` | flake | nixos-unstable |
+| `home-manager` | flake | master。nixpkgs は入力の `nixpkgs` へ追従させる |
+| `wezterm-shell-integration` | 単一のファイル | WezTerm の指定したコミットのシェル統合スクリプト |
+
+固定した版は `flake.lock` が保持する。`wezterm-shell-integration` は flake ではないため、`flake = false` を指定する。取得の詳細は、[WezTerm のシェル統合](wezterm.md) を参照。
 
 ## 構成の名前
 
@@ -42,12 +48,15 @@ feature の粒度は、構成が取り込むかどうかを個別に選べる単
 
 feature が別の feature を `imports` で取り込んでもよい。ただし、取り込みの関係を循環させてはいけない。
 
+flake の入力は `extraSpecialArgs` を経由して feature へ渡す。feature はモジュールの引数 `inputs` として参照する。
+
 ## feature の一覧
 
 `features/` に置く feature と、その内容を以下にまとめる。
 
 | feature | 内容 |
 | --- | --- |
+| bash | 対話シェルの初期化ファイルの配置と、`~/.bashrc` からの読み込み |
 | common | どの構成にも取り込む基盤の設定。Nix の設定と作業用ディレクトリの作成 |
 | dnsutils | DNS の問い合わせコマンド |
 | gh | GitHub CLI |
@@ -55,6 +64,7 @@ feature が別の feature を `imports` で取り込んでもよい。ただし�
 | pre-commit | Git のフックを定義ファイルから管理するツール |
 | python | Python |
 | tmux | tmux 本体と、その設定ファイルの配置 |
+| wezterm | WezTerm のシェル統合スクリプトの配置と読み込み。Linux でのみ内容を持つ |
 
 feature を追加する手順は、[運用手順](../usage/operations.md) を参照。
 
@@ -86,7 +96,7 @@ tmux のプラグインは `home.packages` へは指定せず、tmux の設定�
 
 差分の吸収は、評価の時点で値が定まるかどうかで分ける。
 
-評価の時点で定まる差分は、feature の中で `pkgs.stdenv.hostPlatform.isDarwin` と `isLinux` により分岐する。xclip の導入がこれに当たる。
+評価の時点で定まる差分は、feature の中で `pkgs.stdenv.hostPlatform.isDarwin` と `isLinux` により分岐する。xclip の導入と、WezTerm のシェル統合の配置がこれに当たる。
 
 実行の時点でしか定まらない差分は、配置するスクリプトの中で判定する。WSL 上で動作しているかによるクリップボードの受け渡し先の選択がこれに当たる。分岐の内容は、[tmux の設定](tmux.md) を参照。
 

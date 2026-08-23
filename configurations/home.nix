@@ -1,5 +1,6 @@
 {
   imports = [
+    ../features/bash
     ../features/common
     ../features/dnsutils
     ../features/gh
@@ -7,5 +8,6 @@
     ../features/pre-commit
     ../features/python
     ../features/tmux
+    ../features/wezterm
   ];
 }

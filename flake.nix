@@ -7,10 +7,17 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # WezTerm のシェル統合スクリプト。flake ではないため、単一のファイルとして取得する。
+    # URL はコミットを指す。ブランチを指すと、上流の更新のたびに flake.lock との narHash の不一致で評価が中断するためである
+    wezterm-shell-integration = {
+      url = "file+https://raw.githubusercontent.com/wezterm/wezterm/76b606ec597a3c0263fa60321548637451c0a547/assets/shell-integration/wezterm.sh";
+      flake = false;
+    };
   };
 
   outputs =
-    { nixpkgs, home-manager, ... }:
+    { nixpkgs, home-manager, ... }@inputs:
     let
       inherit (nixpkgs) lib;
 
@@ -42,6 +49,10 @@
         system: module:
         home-manager.lib.homeManagerConfiguration {
           pkgs = nixpkgs.legacyPackages.${system};
+
+          # feature から flake の入力を参照するために渡す
+          extraSpecialArgs = { inherit inputs; };
+
           modules = [
             module
             { home.username = username; }

@@ -14,7 +14,8 @@
 | `home-manager generations` | 適用済みの世代を一覧する |
 | `home-manager expire-generations '-30 days'` | 指定した時点より古い世代を削除する |
 | `nix flake metadata` | 固定されている入力の版を表示する |
-| `nix flake update` | 入力を最新の版へ更新する |
+| `nix flake update` | すべての入力を最新の版へ更新する |
+| `nix flake update <入力名>` | 指定した入力のみを最新の版へ更新する |
 | `nix flake check --impure` | 出力を評価し、構成が壊れていないことを確認する |
 
 `--flake` へ与える値は `<flake のパス>#<名前>` である。リポジトリの外から実行する場合は `~/src/dotfiles#home` のようにパスを伴う。
@@ -52,7 +53,9 @@ home-manager generations
 
 feature を追加する場合は、`features/<名前>/default.nix` を作り、取り込む構成の `imports` へ追加する。feature の粒度の指針は、[Nix による構成の管理](../elements/nix.md) を参照。
 
-いずれの場合も、ホームディレクトリへ配置されるファイルが増減したときは [概要](../overview.md) を、パッケージが増減したときは [Nix による構成の管理](../elements/nix.md) を更新すること。
+リポジトリの外にあるファイルを参照する場合は、`flake.nix` の `inputs` へ追加する。feature からはモジュールの引数 `inputs` として参照する。版は `flake.lock` が固定する。
+
+いずれの場合も、ホームディレクトリへ配置されるファイルが増減したときは [概要](../overview.md) を、パッケージと入力が増減したときは [Nix による構成の管理](../elements/nix.md) を更新すること。
 
 > [!TIP]
 > Nix のファイルの整形には nixfmt を用いる。

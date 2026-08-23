@@ -10,6 +10,7 @@
 
 | feature | home | work |
 | --- | --- | --- |
+| bash | 取り込む | 取り込む |
 | common | 取り込む | 取り込む |
 | dnsutils | 取り込む | 取り込む |
 | gh | 取り込む | 取り込む |
@@ -17,26 +18,33 @@
 | pre-commit | 取り込む | 取り込む |
 | python | 取り込む | 取り込む |
 | tmux | 取り込む | 取り込む |
+| wezterm | 取り込む | 取り込む |
 
 各 feature の内容と、feature を追加する場合の指針は、[Nix による構成の管理](elements/nix.md) を参照。
 
 ## 配置されるファイル
 
-ホームディレクトリへ配置されるファイルを、以下にまとめる。いずれも適用対象は Linux と macOS である。
+ホームディレクトリへ配置されるファイルを、以下にまとめる。
 
-| パス | 内容 | 定める feature |
-| --- | --- | --- |
-| `~/.config/nix/nix.conf` | Nix の設定 | common |
-| `~/.config/tmux/tmux.conf` | tmux の設定 | tmux |
-| `~/.config/tmux/plugins.conf` | tmux のプラグインの読み込みと、プラグインの配置に依存するキー割り当て | tmux |
-| `~/.config/tmux/git-pane-info.sh` | ペインヘッダへ Git リポジトリ名とブランチ名を表示するスクリプト | tmux |
-| `~/.config/tmux/copy-to-clipboard.sh` | コピーした内容をクリップボードへ渡すスクリプト | tmux |
+| パス | 内容 | 定める feature | 適用対象 |
+| --- | --- | --- | --- |
+| `~/.config/bash/nix.bashrc` | 対話シェルの初期化のうち、宣言的に管理する部分 | bash | Linux と macOS |
+| `~/.config/nix/nix.conf` | Nix の設定 | common | Linux と macOS |
+| `~/.config/tmux/tmux.conf` | tmux の設定 | tmux | Linux と macOS |
+| `~/.config/tmux/plugins.conf` | tmux のプラグインの読み込みと、プラグインの配置に依存するキー割り当て | tmux | Linux と macOS |
+| `~/.config/tmux/git-pane-info.sh` | ペインヘッダへ Git リポジトリ名とブランチ名を表示するスクリプト | tmux | Linux と macOS |
+| `~/.config/tmux/copy-to-clipboard.sh` | コピーした内容をクリップボードへ渡すスクリプト | tmux | Linux と macOS |
+| `~/.config/wezterm/shell-integration.sh` | WezTerm のシェル統合スクリプト | wezterm | Linux |
 
 配置されるファイルは Nix store 上の実体へのシンボリックリンクであり、書き込みはできない。内容を変えるには、リポジトリを編集して適用し直す。
 
 ## 作成されるディレクトリ
 
 適用時に `~/src` と `~/work` を作成する。いずれも配下の内容は管理しない。
+
+## 管理外のファイルへの追記
+
+適用時に `~/.bashrc` へ `~/.config/bash/nix.bashrc` を読み込む 2 行を追記する。`~/.bashrc` 自体は管理せず、既存の内容はそのまま残る。追記の条件と、追記した行の扱いは、[bash の設定](elements/bash.md) を参照。
 
 ## ドキュメント
 
@@ -54,4 +62,6 @@
 | ドキュメント | 内容 |
 | --- | --- |
 | [Nix による構成の管理](elements/nix.md) | flake の定義、構成と feature の関係、導入するパッケージ |
+| [bash の設定](elements/bash.md) | 対話シェルの初期化ファイルと、その読み込みの経路 |
 | [tmux の設定](elements/tmux.md) | キー割り当て、表示、クリップボード連携、プラグイン |
+| [WezTerm のシェル統合](elements/wezterm.md) | スクリプトの取得と固定、読み込み、端末へ通知する内容 |
