@@ -55,6 +55,46 @@ config.exec_domains = {
 
 
 -- ---
+-- Working directory
+-- ---
+-- 起動時、および新規のタブとペインのカレントディレクトリ。
+-- ペインは分割元のカレントディレクトリを引き継ぎ、タブはドメインのホームディレクトリで開く。
+-- 分割が同じ作業の続きであるのに対し、タブの新規作成は別の作業の始まりであるためである。
+-- WezTerm は分割元のペインのカレントディレクトリを引き継ぎ、それが不明な場合にドメインの
+-- default_cwd を、default_cwd も無い場合に Windows のホームディレクトリを用いる。
+-- 分割元のカレントディレクトリは、シェルが OSC 7 で通知した値、または Windows 側のペインの
+-- プロセスから得る。OSC 7 の通知は、WSL のペインではシェルの初期設定が、Command Prompt の
+-- ペインでは set_environment_variables の prompt が行う。
+-- 引き継ぎは default_cwd より優先されるため、タブの新規作成は SpawnCommand の cwd で
+-- ホームディレクトリを明示する。cwd は引き継ぎより優先される。
+-- 起動時は引き継ぐ先が無いため、WSL のドメインの default_cwd へ WSL 上のホームディレクトリを
+-- 置く。置かない場合、WSL のペインは Windows のホームディレクトリで開き、WSL からは
+-- /mnt/c/Users/<ユーザー名> として見える。
+-- ドメインを問わず用いられる config.default_cwd は置かない。Windows 側のペインを WSL 上の
+-- パスで起動することになるためである。
+-- 一覧は、wezterm.default_wsl_domains() が wsl -l -v から作る既定へ default_cwd のみを加える。
+-- config.wsl_domains へ直接書いた場合、書いたドメインのみが列挙の対象となるためである。
+local wsl_domains = wezterm.default_wsl_domains()
+for _, domain in ipairs(wsl_domains) do
+    domain.default_cwd = '~'
+end
+config.wsl_domains = wsl_domains
+
+-- ドメインのホームディレクトリを返す。新規のタブは、この位置で開く。
+-- WSL のドメインのペインは WSL 上で動くため、Windows のホームディレクトリではなく WSL 上の
+-- ホームディレクトリを返す。~ は、WezTerm が --cd へ渡す先の wsl.exe が WSL 上のホーム
+-- ディレクトリとして解釈する。
+-- domain: ドメイン名
+-- 戻り値: パス
+local function home_of(domain)
+    if domain:match('^WSL:') then
+        return '~'
+    end
+    return wezterm.home_dir
+end
+
+
+-- ---
 -- Spawn targets
 -- ---
 -- 起動できる接続先とプログラムの一覧。launch menu、タブバー右端の一覧、Alt+1 から Alt+3 の
@@ -98,12 +138,15 @@ local unknown_target = {
 
 -- spawn_targets の要素から SpawnCommand を作る。
 -- 起動するプログラムを指定せず、ドメインの既定に委ねる。
+-- 用いる先はいずれもタブの新規作成であるため、カレントディレクトリはドメインの
+-- ホームディレクトリとする。
 -- target: spawn_targets の要素
 -- 戻り値: SpawnCommand
 local function spawn_command(target)
     return {
         label = target.label,
         domain = target.domain,
+        cwd = home_of(target.domain.DomainName),
     }
 end
 
@@ -179,31 +222,6 @@ config.window_background_opacity = 1.0
 -- 起動時のウィンドウの大きさ。WezTerm の既定である 80 桁 24 行の 2.5 倍とする。
 config.initial_cols = 200
 config.initial_rows = 60
-
-
--- ---
--- Working directory
--- ---
--- 起動時、および新規のタブとペインのカレントディレクトリ。
--- WezTerm は分割元のペインのカレントディレクトリを引き継ぎ、それが不明な場合にドメインの
--- default_cwd を、default_cwd も無い場合に Windows のホームディレクトリを用いる。
--- 分割元のカレントディレクトリは、シェルが OSC 7 で通知した値、または Windows 側のペインの
--- プロセスから得る。OSC 7 の通知は、WSL のペインではシェルの初期設定が、Command Prompt の
--- ペインでは set_environment_variables の prompt が行う。
--- 起動時は引き継ぐ先が無いため、WSL のドメインの default_cwd へ WSL 上のホームディレクトリを
--- 置く。置かない場合、WSL のペインは Windows のホームディレクトリで開き、WSL からは
--- /mnt/c/Users/<ユーザー名> として見える。~ は、WezTerm が --cd へ渡す先の wsl.exe が
--- WSL 上のホームディレクトリとして解釈する。
--- 引き継ぎは default_cwd より優先されるため、分割と新規タブの引き継ぎは変わらない。
--- ドメインを問わず用いられる config.default_cwd は置かない。Windows 側のペインを WSL 上の
--- パスで起動することになるためである。
--- 一覧は、wezterm.default_wsl_domains() が wsl -l -v から作る既定へ default_cwd のみを加える。
--- config.wsl_domains へ直接書いた場合、書いたドメインのみが列挙の対象となるためである。
-local wsl_domains = wezterm.default_wsl_domains()
-for _, domain in ipairs(wsl_domains) do
-    domain.default_cwd = '~'
-end
-config.wsl_domains = wsl_domains
 
 
 -- ---
@@ -408,7 +426,23 @@ config.keys = {
 
     -- Tab
     -- tmux の window に対応する。
-    { key = 'w', mods = 'ALT', action = act.SpawnTab 'CurrentPaneDomain' },
+    -- 新規作成は、アクティブなペインのカレントディレクトリを引き継がず、ドメインの
+    -- ホームディレクトリで開く。cwd の指定を要するため、SpawnTab ではなく
+    -- SpawnCommandInNewTab を用いる。接続先はアクティブなペインと同じであり、
+    -- cwd もそのペインのドメインから引く。
+    {
+        key = 'w',
+        mods = 'ALT',
+        action = wezterm.action_callback(function(window, pane)
+            window:perform_action(
+                act.SpawnCommandInNewTab {
+                    domain = 'CurrentPaneDomain',
+                    cwd = home_of(pane:get_domain_name()),
+                },
+                pane
+            )
+        end),
+    },
     { key = 'd', mods = 'ALT', action = act.CloseCurrentTab { confirm = true } },
     { key = 'RightArrow', mods = 'SHIFT', action = act.ActivateTabRelative(1) },
     { key = 'LeftArrow', mods = 'SHIFT', action = act.ActivateTabRelative(-1) },
