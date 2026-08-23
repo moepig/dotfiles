@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# tmux.conf のプラグインの宣言が変わったときのみ再実行させるためのハッシュ。
+# tmux.conf sha256: {{ include "private_dot_config/tmux/tmux.conf" | sha256sum }}
+
+TPM_BIN="$HOME/.config/tmux/plugins/tpm/bin/install_plugins"
+
+# tmux が未導入の場合、および TPM の取得前は何もしない。次回の適用で再試行される。
+if ! command -v tmux >/dev/null 2>&1 || [[ ! -x "$TPM_BIN" ]]; then
+    exit 0
+fi
+
+"$TPM_BIN"

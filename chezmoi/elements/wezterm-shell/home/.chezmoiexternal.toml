@@ -1,0 +1,6 @@
+# WezTerm のシェル統合スクリプト。URL は WezTerm のコミットを指す。
+# ブランチを指すと、上流の更新のたびに取得する内容が変わるためである。
+[".config/wezterm/shell-integration.sh"]
+    type = "file"
+    url = "https://raw.githubusercontent.com/wezterm/wezterm/76b606ec597a3c0263fa60321548637451c0a547/assets/shell-integration/wezterm.sh"
+    refreshPeriod = "168h"

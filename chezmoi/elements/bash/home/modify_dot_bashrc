@@ -1,0 +1,30 @@
+#!/bin/sh
+# 標準入力で受け取った ~/.bashrc へ、dotfiles.bashrc を読み込む記述を加えて標準出力へ書き出す。
+# 記述が既にある場合は入力をそのまま書き出す。入力の内容は変更しない。
+
+set -eu
+
+# 追記済みかどうかの判定に用いる、読み込みの記述に固有の文字列
+marker='.config/bash/dotfiles.bashrc'
+
+# 入力をファイルへ受ける。コマンド置換は末尾の改行を落とすため、入力をそのまま書き出せない
+input=$(mktemp)
+trap 'rm -f "$input"' EXIT
+cat >"$input"
+
+cat "$input"
+
+if grep -qF "$marker" "$input"; then
+    exit 0
+fi
+
+if [ -s "$input" ]; then
+    # 末尾が改行で終わらない場合に改行を補い、既存の内容との間を 1 行空ける
+    [ "$(tail -c 1 "$input" | wc -l)" -eq 1 ] || printf '\n'
+    printf '\n'
+fi
+
+cat <<'LOADER'
+# dotfiles (chezmoi) managed settings
+[ -f ~/.config/bash/dotfiles.bashrc ] && . ~/.config/bash/dotfiles.bashrc
+LOADER

@@ -1,0 +1,7 @@
+# chezmoi へ渡す設定。run_chezmoi.ps1 が --config で指定する。
+# ソースディレクトリと状態ファイルの位置は element ごとに変わるため、ここでは定めない。
+
+# modify_ スクリプトの実行に用いるコマンド。
+[interpreters.ps1]
+    command = "powershell"
+    args = ["-NoLogo", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File"]

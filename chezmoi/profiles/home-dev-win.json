@@ -1,0 +1,4 @@
+{
+    "description": "自宅の開発用マシンの Windows 環境",
+    "elements": ["wezterm", "vscode"]
+}

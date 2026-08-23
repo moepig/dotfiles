@@ -1,0 +1,238 @@
+﻿# 標準入力で受け取った VS Code のユーザ設定へ、管理対象のキーのみを統合し、標準出力へ書き出す。
+# 管理対象に現れないキーは保持されるため、VS Code の GUI から加えた変更は失われない。
+
+$ErrorActionPreference = 'Stop'
+
+$managedJson = @'
+{{ template "settings.json" . }}
+'@
+
+# 入出力の符号化。Windows PowerShell 5.1 の Console の既定はシステムのコードページであり、
+# 非 ASCII 文字を保てないため、標準入出力を UTF-8 のストリームとして開き直す。
+$utf8 = New-Object System.Text.UTF8Encoding $false
+
+function ConvertTo-JsonString {
+    <#
+    .SYNOPSIS
+        文字列を JSON の文字列リテラルへ変換する。
+    .DESCRIPTION
+        非 ASCII 文字はエスケープせず、そのまま出力する。
+    .PARAMETER Value
+        変換する文字列。
+    .OUTPUTS
+        System.String。前後の二重引用符を含むリテラル。
+    #>
+    param([string] $Value)
+
+    $builder = New-Object System.Text.StringBuilder
+    [void] $builder.Append('"')
+
+    foreach ($character in $Value.ToCharArray()) {
+        switch ([string] $character) {
+            '"'  { [void] $builder.Append('\"'); break }
+            '\'  { [void] $builder.Append('\'); break }
+            "`b" { [void] $builder.Append('\b'); break }
+            "`f" { [void] $builder.Append('\f'); break }
+            "`n" { [void] $builder.Append('\n'); break }
+            "`r" { [void] $builder.Append('\r'); break }
+            "`t" { [void] $builder.Append('\t'); break }
+            default {
+                if ([int] $character -lt 0x20) {
+                    [void] $builder.Append(('\u{0:x4}' -f [int] $character))
+                }
+                else {
+                    [void] $builder.Append($character)
+                }
+            }
+        }
+    }
+
+    [void] $builder.Append('"')
+    return $builder.ToString()
+}
+
+function ConvertTo-JsonText {
+    <#
+    .SYNOPSIS
+        値を JSON のテキストへ変換する。
+    .DESCRIPTION
+        辞書と配列は 1 要素ごとに改行し、深さ 1 につき空白 4 文字で字下げする。空の辞書と空の配列は 1 行とする。
+        辞書のキーの並びは入力の並びを保つ。ConvertTo-Json を用いないのは、非 ASCII 文字のエスケープと
+        コロンの後の空白 2 文字を避けるためである。
+    .PARAMETER Value
+        変換する値。
+    .PARAMETER Depth
+        現在の深さ。字下げの幅を決める。
+    .OUTPUTS
+        System.String。末尾に改行を含まない JSON のテキスト。
+    #>
+    param($Value, [int] $Depth = 0)
+
+    $indent = '    ' * $Depth
+    $childIndent = '    ' * ($Depth + 1)
+
+    if ($null -eq $Value) { return 'null' }
+    if ($Value -is [bool]) { return $(if ($Value) { 'true' } else { 'false' }) }
+    if ($Value -is [string]) { return ConvertTo-JsonString $Value }
+
+    if ($Value -is [System.Collections.IDictionary]) {
+        if ($Value.Count -eq 0) { return '{}' }
+
+        $items = foreach ($key in $Value.Keys) {
+            '{0}{1}: {2}' -f $childIndent, (ConvertTo-JsonString ([string] $key)), (ConvertTo-JsonText $Value[$key] ($Depth + 1))
+        }
+        return "{`n" + ($items -join ",`n") + "`n$indent}"
+    }
+
+    if ($Value -is [System.Collections.IEnumerable]) {
+        $items = foreach ($item in @($Value)) {
+            $childIndent + (ConvertTo-JsonText $item ($Depth + 1))
+        }
+        if ($null -eq $items) { return '[]' }
+        return "[`n" + (@($items) -join ",`n") + "`n$indent]"
+    }
+
+    # 数値。小数点と桁区切りがロケールに依存しないよう、不変カルチャで書式化する。
+    return [System.Convert]::ToString($Value, [System.Globalization.CultureInfo]::InvariantCulture)
+}
+
+function ConvertFrom-Jsonc {
+    <#
+    .SYNOPSIS
+        コメントと末尾のカンマを許す JSON のテキストを解析する。
+    .DESCRIPTION
+        行コメント、ブロックコメント、および閉じ括弧の直前のカンマを取り除いてから解析する。
+        Windows PowerShell 5.1 の ConvertFrom-Json がいずれも受け付けないためである。
+    .PARAMETER Text
+        解析するテキスト。
+    .OUTPUTS
+        System.Management.Automation.PSCustomObject。解析結果。
+    #>
+    param([string] $Text)
+
+    $builder = New-Object System.Text.StringBuilder
+    $inString = $false
+    $escaped = $false
+    $pendingComma = $false
+    $index = 0
+
+    while ($index -lt $Text.Length) {
+        $character = $Text[$index]
+
+        if ($inString) {
+            [void] $builder.Append($character)
+            if ($escaped) { $escaped = $false }
+            elseif ($character -eq '\') { $escaped = $true }
+            elseif ($character -eq '"') { $inString = $false }
+            $index++
+            continue
+        }
+
+        if ($character -eq '/' -and $index + 1 -lt $Text.Length) {
+            $next = $Text[$index + 1]
+            if ($next -eq '/') {
+                while ($index -lt $Text.Length -and $Text[$index] -ne "`n") { $index++ }
+                continue
+            }
+            if ($next -eq '*') {
+                $index += 2
+                while ($index + 1 -lt $Text.Length -and -not ($Text[$index] -eq '*' -and $Text[$index + 1] -eq '/')) { $index++ }
+                $index += 2
+                continue
+            }
+        }
+
+        # カンマは、次に現れる要素が閉じ括弧でないと分かった時点で書き出す。
+        if ($character -eq ',') {
+            $pendingComma = $true
+            $index++
+            continue
+        }
+
+        if ([char]::IsWhiteSpace($character)) {
+            [void] $builder.Append($character)
+            $index++
+            continue
+        }
+
+        if ($pendingComma) {
+            if ($character -ne '}' -and $character -ne ']') { [void] $builder.Append(',') }
+            $pendingComma = $false
+        }
+
+        if ($character -eq '"') { $inString = $true }
+        [void] $builder.Append($character)
+        $index++
+    }
+
+    return ConvertFrom-Json $builder.ToString()
+}
+
+function ConvertTo-OrderedDictionary {
+    <#
+    .SYNOPSIS
+        解析結果を順序付き辞書の入れ子へ変換する。
+    .DESCRIPTION
+        PSCustomObject では動的なキーの追加と存在判定が扱いにくいため、順序付き辞書へ変換する。
+    .PARAMETER Value
+        変換する値。
+    .OUTPUTS
+        System.Object。辞書、配列、またはスカラー。
+    #>
+    param($Value)
+
+    if ($Value -is [System.Management.Automation.PSCustomObject]) {
+        $result = [ordered] @{}
+        foreach ($property in $Value.PSObject.Properties) {
+            $result[$property.Name] = ConvertTo-OrderedDictionary $property.Value
+        }
+        return $result
+    }
+
+    # 単項カンマ演算子を用いる。関数の戻り値では、単一要素の配列と空配列がアンラップされるためである。
+    if ($Value -is [System.Collections.IEnumerable] -and $Value -isnot [string]) {
+        return ,@($Value | ForEach-Object { ConvertTo-OrderedDictionary $_ })
+    }
+
+    return $Value
+}
+
+function Merge-Setting {
+    <#
+    .SYNOPSIS
+        管理対象の内容を、現在の内容へ統合する。
+    .DESCRIPTION
+        双方が辞書であるキーのみ再帰し、それ以外は上書きする。配列は要素単位の統合を行わない。
+    .PARAMETER Base
+        統合先の辞書。呼び出しにより変更される。
+    .PARAMETER Overlay
+        統合する辞書。
+    #>
+    param($Base, $Overlay)
+
+    foreach ($key in @($Overlay.Keys)) {
+        if ($Base.Contains($key) -and
+            $Base[$key] -is [System.Collections.IDictionary] -and
+            $Overlay[$key] -is [System.Collections.IDictionary]) {
+            Merge-Setting $Base[$key] $Overlay[$key]
+        }
+        else {
+            $Base[$key] = $Overlay[$key]
+        }
+    }
+}
+
+$reader = New-Object System.IO.StreamReader -ArgumentList @([Console]::OpenStandardInput(), $utf8)
+$current = $reader.ReadToEnd()
+
+$base = if ([string]::IsNullOrWhiteSpace($current)) {
+    [ordered] @{}
+} else {
+    ConvertTo-OrderedDictionary (ConvertFrom-Jsonc $current)
+}
+
+Merge-Setting $base (ConvertTo-OrderedDictionary (ConvertFrom-Jsonc $managedJson))
+
+$writer = New-Object System.IO.StreamWriter -ArgumentList @([Console]::OpenStandardOutput(), $utf8)
+$writer.Write((ConvertTo-JsonText $base) + "`n")
+$writer.Flush()
