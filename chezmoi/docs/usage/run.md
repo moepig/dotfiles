@@ -30,21 +30,21 @@ powershell -File .\run_chezmoi.ps1 [<element 名>] [-Action <処理>] [-ProfileN
 | PowerShell | bash | 内容 |
 | --- | --- | --- |
 | `<element 名>` | `<element 名>` | 対象の element。省略した場合は profile が選ぶ element の全体を対象とする |
-| `-Action` | `-a`, `--action` | 実行する処理。既定は `Apply` である |
-| `-ProfileName` | `-p`, `--profile` | `Init` で確定する profile 名。`Init` 以外では無視する |
+| `-Action` | `-a`, `--action` | 実行する処理。既定は適用である |
+| `-ProfileName` | `-p`, `--profile` | profile を確定する処理で用いる profile 名。他の処理では無視する |
 | `-List` | `-l`, `--list` | profile と element の一覧を表示して終了する |
 | `-WhatIf` | `-n`, `--dry-run` | 対象を表示して終了する |
 
-`-Action` に指定できる処理は次の 4 つである。
+指定できる処理は 4 つである。処理ごとの指定と内容を、以下にまとめる。指定は 2 つの runner で綴りが異なる。
 
-| 処理 | 内容 |
-| --- | --- |
-| `Init` | profile を確定して記録する。chezmoi は呼び出さない |
-| `Apply` | 対象をホームディレクトリへ適用する |
-| `Diff` | 未適用の差分を表示する |
-| `Status` | 対象の状態を表示する |
+| PowerShell | bash | 内容 |
+| --- | --- | --- |
+| `Init` | `init` | profile を確定して記録する。chezmoi は呼び出さない |
+| `Apply` | `apply` | 対象をホームディレクトリへ適用する |
+| `Diff` | `diff` | 未適用の差分を表示する |
+| `Status` | `status` | 対象の状態を表示する |
 
-`Apply`、`Diff`、`Status` は、対象の element ごとに chezmoi を 1 回ずつ呼び出す。呼び出しの順序は profile が element を並べた順である。
+profile の確定を除く 3 つの処理は、対象の element ごとに chezmoi を 1 回ずつ呼び出す。呼び出しの順序は profile が element を並べた順である。
 
 profile が選ばない element を指定した場合、および定義に無い element を指定した場合は、いずれもエラーとなる。
 
@@ -72,7 +72,7 @@ profile が選ばない element を指定した場合、および定義に無い
 
 ## 状態の読み方
 
-`Status` は、対象ごとに 2 文字の記号とパスを表示する。1 文字目は前回 chezmoi が書き込んだ内容とホームディレクトリの現在の内容との差、2 文字目はホームディレクトリの現在の内容と適用される内容との差を表す。
+状態を表示する処理は、対象ごとに 2 文字の記号とパスを表示する。1 文字目は前回 chezmoi が書き込んだ内容とホームディレクトリの現在の内容との差、2 文字目はホームディレクトリの現在の内容と適用される内容との差を表す。
 
 記号の意味を、以下にまとめる。
 

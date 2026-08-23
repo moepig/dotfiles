@@ -104,9 +104,9 @@ powershell -File .\run_chezmoi.ps1 <element 名> -Action Diff
 
 ```bash
 ./run_chezmoi.sh --list
-./run_chezmoi.sh <element 名> --action Diff
+./run_chezmoi.sh <element 名> --action diff
 ```
 
-一覧表示は、追加した element が profile に選ばれているかを表示する。`Diff` は、展開の結果と適用先の現在の内容との差を表示する。適用先を変更せずに展開の結果だけを見る場合は、`chezmoi cat` を用いる。指定する引数は、[実行](../usage/run.md) を参照。
+一覧表示は、追加した element が profile に選ばれているかを表示する。差分の表示は、展開の結果と適用先の現在の内容との差を示す。適用先を変更せずに展開の結果だけを見る場合は、`chezmoi cat` を用いる。指定する引数は、[実行](../usage/run.md) を参照。
 
-profile を追加した場合、その profile を確定した PC でのみ結果が変わる。確定は `Init` で行う。手順は、[導入](../usage/setup.md) を参照。
+profile を追加した場合、その profile を確定した PC でのみ結果が変わる。確定の手順は、[導入](../usage/setup.md) を参照。

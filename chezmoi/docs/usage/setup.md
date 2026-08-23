@@ -68,19 +68,19 @@
 
     ```bash
     cd ~/src/dotfiles/chezmoi
-    ./run_chezmoi.sh --action Init --profile home-dev-wsl2
+    ./run_chezmoi.sh --action init --profile home-dev-wsl2
     ```
 
 4. 適用される内容を確認する。
 
     ```bash
-    ./run_chezmoi.sh --action Diff
+    ./run_chezmoi.sh --action diff
     ```
 
 5. 適用する。
 
     ```bash
-    ./run_chezmoi.sh --action Apply
+    ./run_chezmoi.sh --action apply
     ```
 
 ## PC ごとに持つファイル
@@ -98,7 +98,7 @@ WSL2 での位置は `XDG_STATE_HOME` が定まっていればそちらに従う
 
 ## profile の変更
 
-profile を変更するには、profile 名を与えて `Init` をやり直す。
+profile を変更するには、profile 名を与えて profile の確定をやり直す。
 
 ```powershell
 powershell -File .\run_chezmoi.ps1 -Action Init -ProfileName work-win

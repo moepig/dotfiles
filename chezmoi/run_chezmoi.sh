@@ -31,7 +31,7 @@ else
 fi
 
 element_name=''
-action='Apply'
+action='apply'
 profile_name=''
 list=false
 dry_run=false
@@ -57,8 +57,8 @@ usage() {
 使い方: run_chezmoi.sh [<element 名>] [-a <処理>] [-p <profile 名>] [-l] [-n]
 
   <element 名>       対象の element。省略した場合は profile が選ぶ element の全体を対象とする
-  -a, --action       実行する処理。Init, Apply, Diff, Status のいずれか。既定は Apply
-  -p, --profile      Init で確定する profile 名。Init 以外では無視する
+  -a, --action       実行する処理。init, apply, diff, status のいずれか。既定は apply
+  -p, --profile      init で確定する profile 名。init 以外では無視する
   -l, --list         profile と element の一覧を表示して終了する
   -n, --dry-run      対象を表示して終了する
   -h, --help         本メッセージを表示して終了する
@@ -102,8 +102,8 @@ parse_arguments() {
     done
 
     case ${action} in
-        Init | Apply | Diff | Status) ;;
-        *) die "処理 ${action} は指定できない (指定できる処理: Init, Apply, Diff, Status)" ;;
+        init | apply | diff | status) ;;
+        *) die "処理 ${action} は指定できない (指定できる処理: init, apply, diff, status)" ;;
     esac
 }
 
@@ -169,7 +169,7 @@ get_profile_element() {
 # 確定した profile 名を出力する。profile が確定していない場合を異常終了とする。
 get_current_profile_name() {
     [ -f "${profile_path}" ] ||
-        die "profile が確定していない (${profile_path})。--action Init を先に実行すること"
+        die "profile が確定していない (${profile_path})。--action init を先に実行すること"
     jq -r '.profile' "${profile_path}"
 }
 
@@ -287,7 +287,7 @@ main() {
         return 0
     fi
 
-    if [ "${action}" = 'Init' ]; then
+    if [ "${action}" = 'init' ]; then
         invoke_init
         return 0
     fi
@@ -307,12 +307,10 @@ main() {
         return 0
     fi
 
-    local command
-    command=$(tr '[:upper:]' '[:lower:]' <<<"${action}")
     while IFS= read -r name; do
         [ -n "${name}" ] || continue
-        write_step "element ${name} を対象に ${command} を実行する"
-        invoke_chezmoi "${command}" "${name}"
+        write_step "element ${name} を対象に ${action} を実行する"
+        invoke_chezmoi "${action}" "${name}"
     done <<<"${targets}"
 
     return 0
