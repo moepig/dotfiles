@@ -120,7 +120,12 @@ WezTerm はペインごとのヘッダを持たないため、ペインの情報
 
 起動時のウィンドウの大きさは 200 桁 60 行である。WezTerm の既定である 80 桁 24 行の 2.5 倍に当たる。
 
-フォントは Consolas と BIZ UDGothic の組み合わせ、配色は OneHalfDark である。
+フォントは Consolas と BIZ UDGothic の組み合わせ、配色は OneHalfDark である。Consolas に含まれない字形を BIZ UDGothic へ退避する。
+
+グリフのラスタライズには FreeType を用いる。WezTerm は DirectWrite を用いないため、Windows の他のプログラムの既定である ClearType とは見えかたが異なる。ClearType に最も近い組み合わせとして、ヒンティングによる字形の変形を縦方向のみに限る `Light`、および横に並ぶ RGB のサブピクセルを単位として濃度を求める `HorizontalLcd` を用いる。
+
+> [!NOTE]
+> `HorizontalLcd` はサブピクセルごとに背景色と合成するため、背景が不透明であることを要する。ウィンドウの背景は不透明であるため、条件を満たす。
 
 ## セッションの保存と復元
 

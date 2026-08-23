@@ -204,6 +204,15 @@ end
 config.font = wezterm.font_with_fallback { 'Consolas', 'BIZ UDGothic' }
 config.font_size = 10.0
 
+-- グリフのラスタライズの方法。WezTerm は DirectWrite ではなく FreeType でラスタライズするため、
+-- Windows の他のプログラムの既定である ClearType とは異なる見えかたとなる。
+-- load_target の Light は、ヒンティングによる字形の変形を縦方向のみに限る。render_target の
+-- HorizontalLcd は、横に並ぶ RGB のサブピクセルを単位として濃度を求める。2 つの組み合わせが
+-- ClearType に最も近い。
+-- HorizontalLcd はサブピクセルごとに背景色と合成するため、背景が不透明であることを要する。
+config.freetype_load_target = 'Light'
+config.freetype_render_target = 'HorizontalLcd'
+
 config.color_scheme = 'OneHalfDark'
 
 
