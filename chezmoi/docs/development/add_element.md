@@ -9,7 +9,7 @@ element は profile が個別に選択する管理の 1 単位である。次の
 1. `elements/<element 名>/element.json` へ宣言を作成する
 2. `elements/<element 名>/home/` へ、適用先のパスに対応する位置で設定を作成する
 3. その設定を持つ profile の `elements` へ element 名を追加する
-4. `docs/elements/<element 名>.md` へ管理する内容を記述する
+4. `elements/<element 名>/README.md` へ管理する内容を記述する
 
 element 名は、設定の対象となるアプリケーションの名前とする。ディレクトリ名がそのまま element 名となる。同じアプリケーションの設定を OS ごとに分ける場合は、対象を表す語を添えて区別する。
 

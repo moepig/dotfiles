@@ -82,7 +82,7 @@ feature が `home.packages` へ指定するパッケージを、以下にまと�
 
 このほか、`programs.home-manager` を有効にすることで `home-manager` コマンドを導入する。
 
-tmux のプラグインは `home.packages` へは指定しない。取得は chezmoi 層の tmux element が行う。取得の方法は、[tmux の設定](../../chezmoi/docs/elements/tmux.md) を参照。
+tmux のプラグインは `home.packages` へは指定しない。取得は chezmoi 層の tmux element が行う。取得の方法は、[tmux の設定](../../chezmoi/elements/tmux/README.md) を参照。
 
 ## common が定める設定
 

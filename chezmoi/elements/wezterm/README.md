@@ -178,4 +178,4 @@ WezTerm はカレントディレクトリを表示と新規ペインの双方で
 | ブランチ名 | `wsl.exe` のカレントディレクトリが属する Git リポジトリのブランチ名 |
 | 新規のペインと新規のタブが引き継ぐカレントディレクトリ | `wsl.exe` のカレントディレクトリ |
 
-通知は接続先のシェルが行う。WSL2 の profile が選ぶ wezterm-shell element が、通知を行うシェル統合スクリプトの配置と読み込みを管理する。スクリプトが送出する制御列は、[WezTerm のシェル統合](wezterm-shell.md) を参照。
+通知は接続先のシェルが行う。WSL2 の profile が選ぶ wezterm-shell element が、通知を行うシェル統合スクリプトの配置と読み込みを管理する。スクリプトが送出する制御列は、[WezTerm のシェル統合](../wezterm-shell/README.md) を参照。

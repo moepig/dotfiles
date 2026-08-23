@@ -37,6 +37,7 @@ chezmoi/
 ├── elements/
 │   └── <element 名>/
 │       ├── element.json          element の宣言
+│       ├── README.md             管理する設定の内容
 │       └── home/                 ソースディレクトリ
 └── profiles/
     └── <profile 名>.json         profile の宣言
@@ -110,7 +111,7 @@ element どうしの独立は、次の 3 つで保つ。
 - target は element どうしで重ならない。重なった場合、後に適用した element の内容が残る
 - 適用の対象は element 単位で指定できる。element 1 件を指定した適用では、chezmoi が他の element のソースディレクトリを読まない
 
-element が他の element の動作を前提とする場合は、参照ではなくディレクトリを介する。対話シェルの初期化がこれに当たり、加える側は `~/.config/bash/rc.d/` 配下の自身の target を置くのみである。経路は、[bash の設定](../elements/bash.md) を参照。
+element が他の element の動作を前提とする場合は、参照ではなくディレクトリを介する。対話シェルの初期化がこれに当たり、加える側は `~/.config/bash/rc.d/` 配下の自身の target を置くのみである。経路は、[bash の設定](../../elements/bash/README.md) を参照。
 
 ## 他のソースディレクトリからの独立
 

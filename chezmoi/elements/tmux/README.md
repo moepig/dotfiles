@@ -41,7 +41,7 @@ status line は上端の 2 行である。1 行目にはウィンドウの一覧
 
 ## 制御列の透過
 
-`allow-passthrough` を有効にし、DCS で包まれた制御列を外側の端末へそのまま渡す。WezTerm のシェル統合が、tmux の内側からユーザ変数を通知するために要する。通知の内容は、[WezTerm のシェル統合](wezterm-shell.md) を参照。
+`allow-passthrough` を有効にし、DCS で包まれた制御列を外側の端末へそのまま渡す。WezTerm のシェル統合が、tmux の内側からユーザ変数を通知するために要する。通知の内容は、[WezTerm のシェル統合](../wezterm-shell/README.md) を参照。
 
 ## コピーモードとクリップボード連携
 

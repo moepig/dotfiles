@@ -20,7 +20,7 @@ URL は WezTerm のコミットを指す。取得した内容は `~/.cache/chezm
 
 ## 配置と読み込み
 
-スクリプトは `~/.config/wezterm/shell-integration.sh` へ配置する。読み込みの記述は `~/.config/bash/rc.d/90-wezterm.bashrc` へ置く。番号を 90 とするのは、スクリプトが `PROMPT_COMMAND` を書き換えるため、他の初期化より後に読み込む必要があるためである。読み込みの経路は、[bash の設定](bash.md) を参照。
+スクリプトは `~/.config/wezterm/shell-integration.sh` へ配置する。読み込みの記述は `~/.config/bash/rc.d/90-wezterm.bashrc` へ置く。番号を 90 とするのは、スクリプトが `PROMPT_COMMAND` を書き換えるため、他の初期化より後に読み込む必要があるためである。読み込みの経路は、[bash の設定](../bash/README.md) を参照。
 
 スクリプトは、bash と zsh 以外のシェル、非対話のシェル、および `TERM` が `linux` または `dumb` である端末では何も行わずに終了する。
 
@@ -37,7 +37,7 @@ URL は WezTerm のコミットを指す。取得した内容は `~/.cache/chezm
 いずれの環境変数も、値を `1` として設定すると対応する通知を行わない。`WEZTERM_SHELL_SKIP_ALL` を `1` とすると、スクリプトは何も行わずに終了する。
 
 > [!NOTE]
-> ユーザ変数の通知は、tmux の内側では DCS で包んだうえで送出する。tmux がこれを外側の端末へ渡すよう、tmux の設定は `allow-passthrough` を有効にしている。設定の内容は、[tmux の設定](tmux.md) を参照。
+> ユーザ変数の通知は、tmux の内側では DCS で包んだうえで送出する。tmux がこれを外側の端末へ渡すよう、tmux の設定は `allow-passthrough` を有効にしている。設定の内容は、[tmux の設定](../tmux/README.md) を参照。
 
 ## 配置されるファイル
 

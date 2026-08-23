@@ -41,13 +41,13 @@ chezmoi 層が管理する element と、その適用先を以下にまとめる
 
 | element | 適用先 | 方式 | ドキュメント |
 | --- | --- | --- | --- |
-| bash | `~/.bashrc`、`~/.config/bash/` | 読み込みの記述を既存の内容へ統合し、初期化ファイルは全体を管理する | [bash](../chezmoi/docs/elements/bash.md) |
-| tmux | `~/.config/tmux/` | 設定とスクリプトの全体を管理し、プラグインを取得する | [tmux](../chezmoi/docs/elements/tmux.md) |
-| wezterm-shell | `~/.config/wezterm/`、`~/.config/bash/rc.d/` | 上流のスクリプトを取得し、読み込みの記述を管理する | [wezterm-shell](../chezmoi/docs/elements/wezterm-shell.md) |
-| wezterm | `%USERPROFILE%\.config\wezterm\` | 設定ファイルの全体を管理し、状態の保存先ディレクトリを作成する | [wezterm](../chezmoi/docs/elements/wezterm.md) |
-| vscode | `%APPDATA%\Code\User\settings.json` | 管理対象のキーのみを既存の内容へ統合する | [vscode](../chezmoi/docs/elements/vscode.md) |
+| bash | `~/.bashrc`、`~/.config/bash/` | 読み込みの記述を既存の内容へ統合し、初期化ファイルは全体を管理する | [bash](../chezmoi/elements/bash/README.md) |
+| tmux | `~/.config/tmux/` | 設定とスクリプトの全体を管理し、プラグインを取得する | [tmux](../chezmoi/elements/tmux/README.md) |
+| wezterm-shell | `~/.config/wezterm/`、`~/.config/bash/rc.d/` | 上流のスクリプトを取得し、読み込みの記述を管理する | [wezterm-shell](../chezmoi/elements/wezterm-shell/README.md) |
+| wezterm | `%USERPROFILE%\.config\wezterm\` | 設定ファイルの全体を管理し、状態の保存先ディレクトリを作成する | [wezterm](../chezmoi/elements/wezterm/README.md) |
+| vscode | `%APPDATA%\Code\User\settings.json` | 管理対象のキーのみを既存の内容へ統合する | [vscode](../chezmoi/elements/vscode/README.md) |
 
-profile がどの element を選ぶかは、`run_chezmoi.ps1` と `run_chezmoi.sh` の一覧表示で確認する。読み方は、[実行](../chezmoi/docs/usage/run.md) を参照。
+各 element の `README.md` は、その element のディレクトリに置く。profile がどの element を選ぶかは、`run_chezmoi.ps1` と `run_chezmoi.sh` の一覧表示で確認する。読み方は、[実行](../chezmoi/docs/usage/run.md) を参照。
 
 ## 導入されるパッケージ
 
