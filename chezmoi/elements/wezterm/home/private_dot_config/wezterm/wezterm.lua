@@ -841,15 +841,16 @@ resurrect.state_manager.set_max_nlines(1000)
 -- 状態を保存する間隔。WezTerm は終了時のイベントを持たないため、復元できるのは最後の保存の時点である。
 local save_interval_seconds = 60
 
--- 定期的な保存の開始。保存の繰り返しは設定の再読み込みでも止まらないため、再読み込みを跨いで
--- 残る wezterm.GLOBAL へ開始済みであることを記録し、繰り返しが重なることを防ぐ。
-if not wezterm.GLOBAL.session_save_started then
-    wezterm.GLOBAL.session_save_started = true
-    resurrect.state_manager.periodic_save {
-        interval_seconds = save_interval_seconds,
-        save_workspaces = true,
-    }
-end
+-- 定期的な保存の開始。設定を評価するたびに開始する。
+-- 繰り返しは wezterm.time.call_after が担い、その予定は設定を評価し直した時点で失われる。
+-- WezTerm は起動時に設定を複数回評価し、以降も再読み込みのたびに評価し直すため、
+-- 開始済みであることを wezterm.GLOBAL へ記録して 2 回目以降の評価で開始を省くと、
+-- 繰り返しを持たない評価だけが残り、保存が一度も行われない。
+-- 評価のたびに開始しても繰り返しは重ならない。前の評価の予定が残らないためである。
+resurrect.state_manager.periodic_save {
+    interval_seconds = save_interval_seconds,
+    save_workspaces = true,
+}
 
 -- 復元の対象とする workspace の記録。起動時の復元はこの記録を読む。
 wezterm.on('resurrect.state_manager.periodic_save.finished', function()
