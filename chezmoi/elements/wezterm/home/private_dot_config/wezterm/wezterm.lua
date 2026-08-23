@@ -184,12 +184,26 @@ config.initial_rows = 60
 -- ---
 -- Working directory
 -- ---
--- 新規のタブとペインのカレントディレクトリ。
--- WezTerm は分割元のペインのカレントディレクトリを引き継ぎ、それが不明な場合に default_cwd を、
--- default_cwd も無い場合にホームディレクトリを用いる。引き継ぎを優先するため default_cwd は置かない。
+-- 起動時、および新規のタブとペインのカレントディレクトリ。
+-- WezTerm は分割元のペインのカレントディレクトリを引き継ぎ、それが不明な場合にドメインの
+-- default_cwd を、default_cwd も無い場合に Windows のホームディレクトリを用いる。
 -- 分割元のカレントディレクトリは、シェルが OSC 7 で通知した値、または Windows 側のペインの
 -- プロセスから得る。OSC 7 の通知は、WSL のペインではシェルの初期設定が、Command Prompt の
 -- ペインでは set_environment_variables の prompt が行う。
+-- 起動時は引き継ぐ先が無いため、WSL のドメインの default_cwd へ WSL 上のホームディレクトリを
+-- 置く。置かない場合、WSL のペインは Windows のホームディレクトリで開き、WSL からは
+-- /mnt/c/Users/<ユーザー名> として見える。~ は、WezTerm が --cd へ渡す先の wsl.exe が
+-- WSL 上のホームディレクトリとして解釈する。
+-- 引き継ぎは default_cwd より優先されるため、分割と新規タブの引き継ぎは変わらない。
+-- ドメインを問わず用いられる config.default_cwd は置かない。Windows 側のペインを WSL 上の
+-- パスで起動することになるためである。
+-- 一覧は、wezterm.default_wsl_domains() が wsl -l -v から作る既定へ default_cwd のみを加える。
+-- config.wsl_domains へ直接書いた場合、書いたドメインのみが列挙の対象となるためである。
+local wsl_domains = wezterm.default_wsl_domains()
+for _, domain in ipairs(wsl_domains) do
+    domain.default_cwd = '~'
+end
+config.wsl_domains = wsl_domains
 
 
 -- ---
