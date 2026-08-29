@@ -255,6 +255,9 @@ local key_help = {
     { key = 'Ctrl+a Ctrl+a', desc = 'Ctrl+a を接続先へ送る' },
     { key = 'Ctrl+a r', desc = '設定の再読み込み' },
     { key = 'Ctrl+a s', desc = 'セッションの保存' },
+    { section = 'Clipboard' },
+    { key = 'Ctrl+v', desc = '貼り付け' },
+    { key = '右クリック', desc = '貼り付け' },
     { section = 'Tab' },
     { key = 'Alt+w', desc = 'タブの新規作成' },
     { key = 'Alt+1 Alt+2 Alt+3', desc = '接続先を指定したタブの新規作成' },
@@ -407,6 +410,9 @@ config.keys = {
     -- 設定の再読み込み。WezTerm は設定ファイルの変更を自動で検知するため、明示的に行う手段として置く。
     { key = 'r', mods = 'LEADER', action = act.ReloadConfiguration },
 
+    -- Clipboard
+    { key = 'v', mods = 'CTRL', action = act.PasteFrom 'Clipboard' },
+
     -- Key help
     -- キー割り当ての一覧。InputSelector は選択のための UI であるが、選択して閉じる以外の動作を
     -- 与えないことで一覧の表示に用いる。alphabet を空とし、項目へ選択用の文字を付けない。
@@ -501,6 +507,19 @@ for i, target in ipairs(spawn_targets) do
         action = act.SpawnCommandInNewTab(spawn_command(target)),
     })
 end
+
+
+-- ---
+-- Mouse bindings
+-- ---
+-- 右クリックで Windows のクリップボードから貼り付ける。
+config.mouse_bindings = {
+    {
+        event = { Down = { streak = 1, button = 'Right' } },
+        mods = 'NONE',
+        action = act.PasteFrom 'Clipboard',
+    },
+}
 
 
 -- ---

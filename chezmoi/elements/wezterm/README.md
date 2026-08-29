@@ -56,6 +56,8 @@ tmux の window はタブ、pane はペインへ対応する。WezTerm の既定
 | Ctrl+a Ctrl+a | Ctrl+a を接続先へ送る | `bind-key C-a send-prefix` |
 | Ctrl+a r | 設定の再読み込み | `bind-key r source-file` |
 | Ctrl+a s | セッションの保存 | tmux-resurrect の prefix + Ctrl-s |
+| Ctrl+v | クリップボードから貼り付ける | - |
+| 右クリック | クリップボードから貼り付ける | - |
 | Alt+Shift+w | launcher menu を開く | - |
 | Alt+1, Alt+2, Alt+3 | 接続先を指定したタブの新規作成 | - |
 | Alt+w | タブの新規作成 | `new-window` |
