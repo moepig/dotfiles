@@ -1,4 +1,4 @@
 {
     "description": "自宅の開発用マシンの WSL2 環境",
-    "elements": ["bash", "wezterm-shell", "tmux"]
+    "elements": ["bash", "wezterm-shell", "tmux", "codex"]
 }

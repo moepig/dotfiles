@@ -1,0 +1,129 @@
+#!/bin/sh
+
+set -eu
+
+awk '
+function write_assignment(line, key, value,    indent, comment) {
+    indent = line
+    sub(/[^[:space:]].*$/, "", indent)
+
+    comment = ""
+    if (match(line, /[[:space:]]+#.*$/)) {
+        comment = substr(line, RSTART)
+    }
+
+    print indent key " = " value comment
+}
+
+function write_missing_root_settings() {
+    if (!approval_found) {
+        print "approval_policy = \"on-request\""
+    }
+    if (!sandbox_found) {
+        print "sandbox_mode = \"workspace-write\""
+    }
+    root_settings_written = 1
+}
+
+function is_table_header(line) {
+    return line ~ /^[[:space:]]*\[.*\][[:space:]]*(#.*)?$/
+}
+
+function is_tui_header(line) {
+    return line ~ /^[[:space:]]*\[[[:space:]]*tui[[:space:]]*\][[:space:]]*(#.*)?$/
+}
+
+{
+    lines[NR] = $0
+}
+
+END {
+    in_root = 1
+    in_tui = 0
+
+    for (i = 1; i <= NR; i++) {
+        line = lines[i]
+
+        if (is_table_header(line)) {
+            in_root = 0
+            in_tui = is_tui_header(line)
+            if (in_tui) {
+                tui_found = 1
+            }
+            continue
+        }
+
+        if (in_root && line ~ /^[[:space:]]*approval_policy[[:space:]]*=/) {
+            approval_found = 1
+        }
+        if (in_root && line ~ /^[[:space:]]*sandbox_mode[[:space:]]*=/) {
+            sandbox_found = 1
+        }
+    }
+
+    in_root = 1
+    in_tui = 0
+
+    for (i = 1; i <= NR; i++) {
+        line = lines[i]
+
+        if (is_table_header(line)) {
+            if (!root_settings_written) {
+                write_missing_root_settings()
+            }
+            if (in_tui && !animations_written) {
+                print "animations = false"
+                animations_written = 1
+            }
+
+            in_root = 0
+            in_tui = is_tui_header(line)
+            print line
+            continue
+        }
+
+        if (in_root && line ~ /^[[:space:]]*approval_policy[[:space:]]*=/) {
+            if (!approval_written) {
+                write_assignment(line, "approval_policy", "\"on-request\"")
+                approval_written = 1
+            }
+            continue
+        }
+
+        if (in_root && line ~ /^[[:space:]]*sandbox_mode[[:space:]]*=/) {
+            if (!sandbox_written) {
+                write_assignment(line, "sandbox_mode", "\"workspace-write\"")
+                sandbox_written = 1
+            }
+            continue
+        }
+
+        if (in_tui && line ~ /^[[:space:]]*animations[[:space:]]*=/) {
+            if (!animations_written) {
+                write_assignment(line, "animations", "false")
+                animations_written = 1
+            }
+            continue
+        }
+
+        print line
+    }
+
+    if (!root_settings_written) {
+        write_missing_root_settings()
+    }
+
+    if (in_tui && !animations_written) {
+        print "animations = false"
+        animations_written = 1
+    }
+
+    if (!tui_found) {
+        if (NR > 0 || root_settings_written) {
+            print ""
+        }
+        print "[tui]"
+        print "animations = false"
+    }
+}
+'
