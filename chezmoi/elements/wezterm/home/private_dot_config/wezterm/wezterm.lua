@@ -234,6 +234,13 @@ config.initial_rows = 60
 
 
 -- ---
+-- Scrollback
+-- ---
+-- スクロールバック全体に対する viewport の位置と範囲を右端へ表示する。
+config.enable_scroll_bar = true
+
+
+-- ---
 -- Leader
 -- ---
 -- tmux の prefix と同じ Ctrl+a。
@@ -564,6 +571,7 @@ config.tab_max_width = 28
 -- タブの背景色と文字色は format-tab-title が返す書式が定めるため、active_tab と inactive_tab は
 -- 書式を組み立てられない場合の値として置く。
 config.colors = {
+    scrollbar_thumb = palette.active_bg,
     tab_bar = {
         background = palette.bar_bg,
         active_tab = { bg_color = palette.tab_bg, fg_color = palette.fg, intensity = 'Bold' },
