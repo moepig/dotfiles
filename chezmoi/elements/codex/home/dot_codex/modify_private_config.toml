@@ -1,8 +1,12 @@
 #!/bin/sh
+# 標準入力で受け取った Codex の config.toml へ、管理対象の設定を反映して標準出力へ書き出す。
+# 管理対象以外の設定とテーブルの並びを維持し、管理対象の重複した代入は 1 つにまとめる。
 
 set -eu
 
 awk '
+# 管理対象の代入を、元の字下げと行末コメントを維持して書き出す。
+# line は置換元の行、key と value は書き出すキーと値を表す。
 function write_assignment(line, key, value,    indent, comment) {
     indent = line
     sub(/[^[:space:]].*$/, "", indent)
@@ -15,6 +19,7 @@ function write_assignment(line, key, value,    indent, comment) {
     print indent key " = " value comment
 }
 
+# ルートテーブルに存在しない管理対象の設定を補い、書き出し済みとして記録する。
 function write_missing_root_settings() {
     if (!approval_found) {
         print "approval_policy = \"on-request\""
@@ -25,19 +30,25 @@ function write_missing_root_settings() {
     root_settings_written = 1
 }
 
+# テーブルヘッダーかどうかを、行末コメントと前後の空白を許容して判定する。
+# line は判定する 1 行を表し、該当する場合は真を返す。
 function is_table_header(line) {
     return line ~ /^[[:space:]]*\[.*\][[:space:]]*(#.*)?$/
 }
 
+# tui テーブルのヘッダーかどうかを、角括弧内の空白も許容して判定する。
+# line は判定する 1 行を表し、該当する場合は真を返す。
 function is_tui_header(line) {
     return line ~ /^[[:space:]]*\[[[:space:]]*tui[[:space:]]*\][[:space:]]*(#.*)?$/
 }
 
+# 設定の有無を確認してから出力を組み立てるため、入力全体を配列に保持する。
 {
     lines[NR] = $0
 }
 
 END {
+    # 1 回目の走査では、ルートテーブルの管理対象と tui テーブルの有無を確認する。
     in_root = 1
     in_tui = 0
 
@@ -61,6 +72,7 @@ END {
         }
     }
 
+    # 2 回目の走査で入力を再構成し、管理対象の代入を最初の 1 つだけ書き出す。
     in_root = 1
     in_tui = 0
 
@@ -68,6 +80,7 @@ END {
         line = lines[i]
 
         if (is_table_header(line)) {
+            # 最初のテーブルへ移る直前にルート設定を補い、tui テーブルを離れる直前に animations を補う。
             if (!root_settings_written) {
                 write_missing_root_settings()
             }
@@ -82,6 +95,7 @@ END {
             continue
         }
 
+        # 管理対象の既存の代入を所定の値へ置き換え、2 つ目以降の同じキーは出力しない。
         if (in_root && line ~ /^[[:space:]]*approval_policy[[:space:]]*=/) {
             if (!approval_written) {
                 write_assignment(line, "approval_policy", "\"on-request\"")
@@ -109,15 +123,18 @@ END {
         print line
     }
 
+    # 入力がルートテーブルだけの場合は、ファイルの末尾で不足している設定を補う。
     if (!root_settings_written) {
         write_missing_root_settings()
     }
 
+    # tui が最後のテーブルの場合は、その末尾で animations を補う。
     if (in_tui && !animations_written) {
         print "animations = false"
         animations_written = 1
     }
 
+    # tui テーブル自体が存在しない場合は、新しいテーブルをファイルの末尾へ追加する。
     if (!tui_found) {
         if (NR > 0 || root_settings_written) {
             print ""

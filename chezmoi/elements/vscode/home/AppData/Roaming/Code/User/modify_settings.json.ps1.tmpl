@@ -3,6 +3,7 @@
 
 $ErrorActionPreference = 'Stop'
 
+# chezmoi のテンプレートから、このスクリプトが管理する設定だけを JSONC として展開する。
 $managedJson = @'
 {{ template "settings.json" . }}
 '@
@@ -222,6 +223,7 @@ function Merge-Setting {
     }
 }
 
+# 現在の設定を順序付き辞書へ変換し、空の入力は設定を持たない辞書として扱う。
 $reader = New-Object System.IO.StreamReader -ArgumentList @([Console]::OpenStandardInput(), $utf8)
 $current = $reader.ReadToEnd()
 
@@ -231,8 +233,10 @@ $base = if ([string]::IsNullOrWhiteSpace($current)) {
     ConvertTo-OrderedDictionary (ConvertFrom-Jsonc $current)
 }
 
+# 管理対象を優先して再帰的に統合する。管理対象にない現在の設定と、そのキーの並びは維持する。
 Merge-Setting $base (ConvertTo-OrderedDictionary (ConvertFrom-Jsonc $managedJson))
 
+# Windows PowerShell 5.1 の既定の文字コードに依存しないよう、UTF-8 で JSON を書き出す。
 $writer = New-Object System.IO.StreamWriter -ArgumentList @([Console]::OpenStandardOutput(), $utf8)
 $writer.Write((ConvertTo-JsonText $base) + "`n")
 $writer.Flush()

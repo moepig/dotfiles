@@ -4,7 +4,7 @@
 
 set -eu
 
-# 追記済みかどうかの判定に用いる、読み込みの記述に固有の文字列
+# 読み込みの記述に固有の文字列を固定文字列として検索し、追記済みかどうかを判定する。
 marker='.config/bash/dotfiles.bashrc'
 
 # 入力をファイルへ受ける。コマンド置換は末尾の改行を落とすため、入力をそのまま書き出せない
@@ -12,6 +12,7 @@ input=$(mktemp)
 trap 'rm -f "$input"' EXIT
 cat >"$input"
 
+# 入力を先に復元し、必要な場合だけ末尾へ読み込みの記述を追加する。
 cat "$input"
 
 if grep -qF "$marker" "$input"; then
@@ -24,6 +25,7 @@ if [ -s "$input" ]; then
     printf '\n'
 fi
 
+# 対象ファイルが存在する場合だけ読み込み、未配置の環境でもシェルの起動を妨げない。
 cat <<'LOADER'
 # dotfiles (chezmoi) managed settings
 [ -f ~/.config/bash/dotfiles.bashrc ] && . ~/.config/bash/dotfiles.bashrc
