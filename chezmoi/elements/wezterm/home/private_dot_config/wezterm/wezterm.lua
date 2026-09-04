@@ -571,21 +571,26 @@ config.mouse_bindings = {
 -- ---
 -- WezTerm の copy_mode キーテーブルは vi のキー操作を既定に持つ。tmux の mode-keys vi に対応する。
 -- y はコピーして抜ける動作を既定に持つが、Enter は次行の行頭への移動である。
--- tmux は双方をコピーへ割り当てていたため、既定のキーテーブルを取り出して Enter のみを差し替える。
+-- tmux は双方をコピーへ割り当てていたため、既定のキーテーブルを取り出して y と Enter を同じ動作へ差し替える。
 -- コピー先は Windows のクリップボードであり、tmux が WSL 上で行っていた clip.exe への受け渡しは要さない。
+-- コピーの後に copy-finished イベントを発生させ、タブバーへ完了を通知する。
 -- wezterm.gui は multiplexer サーバ側では nil であるため、存在を確かめてから参照する。
 local copy_mode = nil
 if wezterm.gui then
     copy_mode = wezterm.gui.default_key_tables().copy_mode
-    table.insert(copy_mode, {
-        key = 'Enter',
-        mods = 'NONE',
-        action = act.Multiple {
-            { CopyTo = 'ClipboardAndPrimarySelection' },
-            { CopyMode = 'MoveToScrollbackBottom' },
-            { CopyMode = 'Close' },
-        },
-    })
+    local copy_and_close = act.Multiple {
+        { CopyTo = 'ClipboardAndPrimarySelection' },
+        act.EmitEvent 'copy-finished',
+        { CopyMode = 'MoveToScrollbackBottom' },
+        { CopyMode = 'Close' },
+    }
+    for _, key in ipairs { 'y', 'Enter' } do
+        table.insert(copy_mode, {
+            key = key,
+            mods = 'NONE',
+            action = copy_and_close,
+        })
+    end
 end
 
 config.key_tables = {
@@ -967,6 +972,10 @@ local function notify(window, text)
         update_status(window, window:active_pane())
     end)
 end
+
+wezterm.on('copy-finished', function(window)
+    notify(window, 'copied!')
+end)
 
 
 -- ---

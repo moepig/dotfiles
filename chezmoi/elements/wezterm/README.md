@@ -76,7 +76,7 @@ tmux の window はタブ、pane はペインへ対応する。WezTerm の既定
 | コピーモード中の y, Enter | コピーして抜ける | `copy-pipe-and-cancel` |
 | Alt+h | キー割り当ての一覧を表示する | `list-keys` |
 
-WezTerm の `copy_mode` キーテーブルは vi のキー操作を既定に持ち、tmux の `mode-keys vi` に対応する。既定でコピーへ割り当てられているのは `y` のみであるため、`Enter` を同じ動作へ差し替えている。コピー先は Windows のクリップボードである。
+WezTerm の `copy_mode` キーテーブルは vi のキー操作を既定に持ち、tmux の `mode-keys vi` に対応する。既定でコピーへ割り当てられているのは `y` のみであるため、`y` と `Enter` を同じ動作へ差し替えている。コピー先は Windows のクリップボードである。コピー後はタブバーの右端に `copied!` を 2 秒間表示する。
 
 Alt+h が開く一覧は、上の表と同じ内容を区分ごとに並べたものである。表示は WezTerm の InputSelector によるオーバーレイであり、Esc で閉じる。項目の選択は何も行わない。
 
