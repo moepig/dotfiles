@@ -101,56 +101,49 @@ end
 -- ---
 -- Spawn targets
 -- ---
--- 起動できる接続先とプログラムの一覧。launch menu、タブバー右端の一覧、Alt+1 から Alt+3 の
--- キー割り当て、タブの色が、いずれもこの一覧を参照する。
--- 接続先はドメインで一意に定まる。ドメイン名がペインの種別を表し、起動するプログラムはドメインが定める。
--- domain を省いた場合は default_domain で起動するため、Windows 側のシェルにもドメインを明示する。
--- color と dim_color は、いずれも種別を表す同じ色相の色である。color をタブと、ペイン一覧の
--- アクティブなペインへ、彩度を落とした dim_color をペイン一覧のそれ以外のペインへ用いる。
--- dim_color の明度は list_bg より高く、list_bg の上で読める。
+-- 起動可能な接続先と表示属性の一覧。
+-- 配列の位置を接続先の選択番号とし、domain は一意なドメイン名を保持する。
+-- すべての接続先へ domain を明示し、default_domain による補完を使用しない。
+-- color と dim_color は同じ色相とし、dim_color は非アクティブ表示用に彩度を下げる。
 local spawn_targets = {
     {
         label = 'WSL: Ubuntu-24.04',
         short = 'WSL',
         color = '#98c379',
         dim_color = '#76936c',
-        domain = { DomainName = 'WSL:Ubuntu-24.04' },
+        domain = 'WSL:Ubuntu-24.04',
     },
     {
         label = 'PowerShell',
         short = 'PS',
         color = '#61afef',
         dim_color = '#5587b3',
-        domain = { DomainName = 'PowerShell' },
+        domain = 'PowerShell',
     },
     {
         label = 'Command Prompt',
         short = 'CMD',
         color = '#e5c07b',
         dim_color = '#a4916d',
-        domain = { DomainName = 'local' },
+        domain = 'local',
     },
 }
 
--- spawn_targets のどの要素にも対応しないペインへ用いる種別。
--- 種別を表す色相を持たないため、color と dim_color の双方を dim とする。
+-- 定義のないドメインに用いる表示属性。接続先を表す色相を持たない。
 local unknown_target = {
     short = '-',
     color = palette.dim,
     dim_color = palette.dim,
 }
 
--- spawn_targets の要素から SpawnCommand を作る。
--- 起動するプログラムを指定せず、ドメインの既定に委ねる。
--- 用いる先はいずれもタブの新規作成であるため、カレントディレクトリはドメインの
--- ホームディレクトリとする。
+-- 接続先の定義から、そのドメインの既定プログラムをホームディレクトリで起動する SpawnCommand を返す。
 -- target: spawn_targets の要素
 -- 戻り値: SpawnCommand
 local function spawn_command(target)
     return {
         label = target.label,
-        domain = target.domain,
-        cwd = home_of(target.domain.DomainName),
+        domain = { DomainName = target.domain },
+        cwd = home_of(target.domain),
     }
 end
 
@@ -158,10 +151,9 @@ end
 -- ---
 -- Default domain
 -- ---
--- 起動時、およびタブとペインの新規作成時に接続する先。
--- WSL のディストリビューションは "WSL:" を前置したドメイン名として WezTerm が列挙する。
--- 名前は wsl -l -v の出力と一致する。
-config.default_domain = spawn_targets[1].domain.DomainName
+-- 起動時、およびタブとペインの新規作成時に接続するドメイン名。
+-- WSL ドメイン名は "WSL:" とディストリビューション名から成る。
+config.default_domain = spawn_targets[1].domain
 
 
 -- ---
@@ -321,44 +313,26 @@ end
 -- Path
 -- ---
 
--- パスの末尾の要素を返す。区切りは / と \ の双方を受け付ける。
+-- / または \ で区切られたパスの末尾の要素を返す。
 -- path: 末尾に区切りを含んでもよいパス
 -- 戻り値: 末尾の要素。要素が 1 つも無い場合は nil
 local function base_name(path)
-    local name = nil
-    for part in path:gmatch('[^/\\]+') do
-        name = part
-    end
-    return name
+    return path:match('([^/\\]+)[/\\]*$')
 end
 
 -- ---
 -- Pane state
 -- ---
--- ペインの状態は、format-tab-title へ渡る PaneInformation と、panes_with_info が返す Pane の
--- 双方から取り出す。両者は同じ値を別の名前で持つため、以下の表へ揃えてから表示に用いる。
+-- ペインの状態は cwd、title、domain を持つ表で表す。
 --   cwd: カレントディレクトリのパス。得られない場合は nil
 --   title: ペインのタイトル
 --   domain: 接続先のドメイン名
 
--- カレントディレクトリを表す値をパスへ揃える。
--- cwd: Url オブジェクト、文字列、または nil
--- 戻り値: パス。cwd が nil の場合は nil
+-- Url オブジェクトからデコード済みのファイルパスを取り出す。
+-- cwd: Url オブジェクトまたは nil
+-- 戻り値: file_path。cwd が nil の場合は nil
 local function cwd_path(cwd)
-    if cwd == nil then
-        return nil
-    end
-    -- 20240127 以降は Url オブジェクト、それ以前は URL の文字列を返す。
-    if type(cwd) == 'string' then
-        local path = cwd:match('^file://[^/]*(/.*)$')
-        if path ~= nil then
-            return path:gsub('%%(%x%x)', function(hex)
-                return string.char(tonumber(hex, 16))
-            end)
-        end
-        return cwd
-    end
-    return cwd.file_path
+    return cwd and cwd.file_path
 end
 
 -- WSL のペインを分割する際のカレントディレクトリを返す。
@@ -429,10 +403,10 @@ end
 -- Pane kind
 -- ---
 
--- ドメイン名から spawn_targets の要素を引く表。
+-- 一意なドメイン名をキーとして spawn_targets の要素を保持する表。
 local targets_by_domain = {}
 for _, target in ipairs(spawn_targets) do
-    targets_by_domain[target.domain.DomainName] = target
+    targets_by_domain[target.domain] = target
 end
 
 -- ペインの接続先に対応する spawn_targets の要素を返す。
