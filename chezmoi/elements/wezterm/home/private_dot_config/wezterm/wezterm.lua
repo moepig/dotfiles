@@ -72,13 +72,17 @@ config.exec_domains = {
 -- /mnt/c/Users/<ユーザー名> として見える。
 -- ドメインを問わず用いられる config.default_cwd は置かない。Windows 側のペインを WSL 上の
 -- パスで起動することになるためである。
--- 一覧は、wezterm.default_wsl_domains() が wsl -l -v から作る既定へ default_cwd のみを加える。
--- config.wsl_domains へ直接書いた場合、書いたドメインのみが列挙の対象となるためである。
-local wsl_domains = wezterm.default_wsl_domains()
-for _, domain in ipairs(wsl_domains) do
-    domain.default_cwd = '~'
-end
-config.wsl_domains = wsl_domains
+-- 対象のディストリビューションは profile 間で共通であるため、静的に定義する。
+-- wezterm.default_wsl_domains() は設定の評価ごとに wsl.exe を起動する。WezTerm は 1 プロセスでも設定を複数回評価するため、Windows Terminal が既定のコンソールホストである環境では一時的なウィンドウが繰り返し表示される。
+-- https://wezterm.org/config/lua/wezterm/default_wsl_domains.html
+-- 「Computes a list of WslDomain objects, each one representing an installed WSL distribution」
+config.wsl_domains = {
+    {
+        name = 'WSL:Ubuntu-24.04',
+        distribution = 'Ubuntu-24.04',
+        default_cwd = '~',
+    },
+}
 
 -- ドメインのホームディレクトリを返す。新規のタブは、この位置で開く。
 -- WSL のドメインのペインは WSL 上で動くため、Windows のホームディレクトリではなく WSL 上の
@@ -344,8 +348,41 @@ local function cwd_path(cwd)
     if cwd == nil then
         return nil
     end
-    -- 20240127 以降は Url オブジェクト、それ以前は文字列を返す。
-    return type(cwd) == 'string' and cwd or cwd.file_path
+    -- 20240127 以降は Url オブジェクト、それ以前は URL の文字列を返す。
+    if type(cwd) == 'string' then
+        local path = cwd:match('^file://[^/]*(/.*)$')
+        if path ~= nil then
+            return path:gsub('%%(%x%x)', function(hex)
+                return string.char(tonumber(hex, 16))
+            end)
+        end
+        return cwd
+    end
+    return cwd.file_path
+end
+
+-- WSL のペインを分割する際のカレントディレクトリを返す。
+-- pane: 分割元の Pane
+-- 戻り値: WSL 上のパス。WSL 上のパスを取得できない場合は "~"
+local function wsl_split_cwd(pane)
+    local cwd = cwd_path(pane:get_current_working_dir())
+    if cwd == nil or cwd:match('^/?%a:[/\\]') or cwd:match('^[/\\][/\\]') then
+        return '~'
+    end
+    return cwd
+end
+
+-- 分割元のドメインとカレントディレクトリを用いるペイン分割のキー割り当てを返す。
+-- direction: 分割先の方向
+-- 戻り値: KeyAssignment
+local function split_pane(direction)
+    return wezterm.action_callback(function(window, pane)
+        local command = { domain = 'CurrentPaneDomain' }
+        if pane:get_domain_name():match('^WSL:') then
+            command.cwd = wsl_split_cwd(pane)
+        end
+        window:perform_action(act.SplitPane { direction = direction, command = command }, pane)
+    end)
 end
 
 -- PaneInformation から表示に用いる値を取り出す。
@@ -470,16 +507,16 @@ config.keys = {
     { key = 'LeftArrow', mods = 'SHIFT', action = act.ActivateTabRelative(-1) },
 
     -- Pane splitting
-    -- 分割元のドメインとカレントディレクトリを引き継ぐ。起動するプログラムはドメインの既定である。
+    -- 分割元のドメインとカレントディレクトリを引き継ぐ。WSL のペインが Windows 上のパスを返す場合は、WSL 上のホームディレクトリを用いる。起動するプログラムはドメインの既定である。
     {
         key = '\\',
         mods = 'ALT',
-        action = act.SplitPane { direction = 'Right', command = { domain = 'CurrentPaneDomain' } },
+        action = split_pane('Right'),
     },
     {
         key = '-',
         mods = 'ALT',
-        action = act.SplitPane { direction = 'Down', command = { domain = 'CurrentPaneDomain' } },
+        action = split_pane('Down'),
     },
 
     -- Pane deletion
@@ -952,16 +989,37 @@ config.colors.split = palette.split
 -- ---
 -- ウィンドウ、タブ、ペインの構成を保存し、次の起動で復元する。
 -- tmux-resurrect と tmux-continuum による、セッションの保存と復元に対応する。
+-- 状態の保存先。末尾の区切りを含むパスを渡す。
+-- 保存先のディレクトリは chezmoi が作成する。
+local state_dir = wezterm.home_dir .. '\\.config\\wezterm\\state\\'
+
 -- WezTerm 自体は構成の保存と復元を持たないため、resurrect.wezterm プラグインを用いる。
 -- プラグインの取得は wezterm.plugin.require が行う。初回は GitHub から複製し、以降は
 -- %APPDATA%\wezterm\plugins の複製を読み込む。
-local resurrect = wezterm.plugin.require 'https://github.com/MLFlexer/resurrect.wezterm'
+-- プラグインは読み込み時に os.execute('mkdir ...') を 3 回実行する。状態の保存先は作成済みであるため、読み込み中の mkdir のみを省き、一時的なコンソールウィンドウが表示されないようにする。
+-- https://github.com/MLFlexer/resurrect.wezterm/blob/main/plugin/resurrect/utils.lua#L61-L69
+-- 「os.execute('mkdir /p ...')」
+local function require_resurrect()
+    local execute = os.execute
+    os.execute = function(command)
+        if command:match('^mkdir ') then
+            return true, 'exit', 0
+        end
+        return execute(command)
+    end
 
--- 状態の保存先。末尾の区切りを含むパスを渡す。
--- 保存先の既定はプラグインの複製の中であり、プラグインの取得し直しで失われるため、設定と同じ位置へ移す。
--- ディレクトリは存在していることを要する。プラグインによる作成は Windows では成功しない。
-local state_dir = wezterm.home_dir .. '\\.config\\wezterm\\state\\'
-resurrect.state_manager.change_state_save_dir(state_dir)
+    local ok, result = pcall(wezterm.plugin.require, 'https://github.com/MLFlexer/resurrect.wezterm')
+    os.execute = execute
+    if not ok then
+        error(result)
+    end
+    return result
+end
+
+local resurrect = require_resurrect()
+
+-- change_state_save_dir は外部の mkdir を実行するため、保存先のフィールドを直接差し替える。
+resurrect.state_manager.save_state_dir = state_dir
 
 -- ペイン 1 つにつき保存するスクロールバックの行数の上限。
 -- 保存の対象は local ドメインのペインに限られる。WSL のペインの内容は保存しない。
