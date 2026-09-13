@@ -1,5 +1,7 @@
 {
   imports = [
+    ../features/actionlint
+    ../features/bats
     ../features/chezmoi
     ../features/common
     ../features/dnsutils

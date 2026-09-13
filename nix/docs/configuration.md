@@ -52,6 +52,8 @@ flake の入力は `extraSpecialArgs` を経由して feature へ渡す。featur
 
 | feature | 内容 |
 | --- | --- |
+| actionlint | GitHub Actions workflow の静的解析ツール |
+| bats | Bash のテストフレームワーク |
 | chezmoi | 設定ファイルを配置するツール |
 | common | どの構成にも取り込む基盤の設定。Nix の設定と作業用ディレクトリの作成 |
 | dnsutils | DNS の問い合わせコマンド |
@@ -70,6 +72,8 @@ feature が `home.packages` へ指定するパッケージを、以下にまと�
 
 | パッケージ | 内容 | feature |
 | --- | --- | --- |
+| actionlint | GitHub Actions workflow の静的解析ツール | actionlint |
+| bats | Bash のテストフレームワーク | bats |
 | chezmoi | 設定ファイルを配置するツール | chezmoi |
 | dnsutils | dig をはじめとする DNS の問い合わせコマンド | dnsutils |
 | gh | GitHub CLI | gh |
