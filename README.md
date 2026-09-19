@@ -33,7 +33,9 @@
     ├── run_chezmoi.ps1           エントリポイント (Windows)
     ├── run_chezmoi.sh            エントリポイント (WSL2)
     ├── init.ps1                  profile を対話的に選ぶ入口 (Windows)
+    ├── init.sh                   profile を対話的に選ぶ入口 (WSL2)
     ├── apply.ps1                 適用の対象を対話的に選ぶ入口 (Windows)
+    ├── apply.sh                  適用の対象を対話的に選ぶ入口 (WSL2)
     ├── chezmoi.toml              chezmoi へ渡す設定
     ├── elements/                 適用の選択の単位
     │   └── <element 名>/
