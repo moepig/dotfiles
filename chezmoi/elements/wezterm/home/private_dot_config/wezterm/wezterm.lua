@@ -226,6 +226,16 @@ config.color_scheme = 'OneHalfDark'
 -- color_scheme が定める色より明るく見せるためである。
 config.window_background_opacity = 1.0
 
+-- スクロールバーは右側の padding 全体を占めるため、既定の 1 cell から 2 cell へ広げる。
+-- https://wezterm.org/config/lua/config/window_padding.html
+-- 「the value you set for right will control the width of the scrollbar」
+config.window_padding = {
+    left = '1cell',
+    right = '2cell',
+    top = '0.5cell',
+    bottom = '0.5cell',
+}
+
 
 -- ---
 -- Window size
@@ -238,7 +248,7 @@ config.initial_rows = 60
 -- ---
 -- Scrollback
 -- ---
--- スクロールバック全体に対する viewport の位置と範囲を右端へ表示する。
+-- アクティブなペインのスクロールバック全体に対する viewport の位置と範囲をウィンドウ右端へ表示する。
 config.enable_scroll_bar = true
 
 
@@ -281,6 +291,8 @@ local key_help = {
     { key = 'Alt+[ Alt+]', desc = 'ペインの幅を 5 桁ずつ増減' },
     { key = 'Alt+PageUp Alt+PageDown', desc = 'ペインの高さを 5 行ずつ増減' },
     { key = 'Alt+Delete', desc = 'ペインを閉じる。確認は求めない' },
+    { section = 'Scrollback' },
+    { key = 'PageUp PageDown', desc = '1 ページずつスクロール' },
     { section = 'Copy mode' },
     { key = 'Alt+a', desc = 'コピーモードへ入る' },
     { key = 'y Enter', desc = 'コピーして抜ける。コピーモード中のみ' },
@@ -518,6 +530,10 @@ config.keys = {
     { key = '[', mods = 'ALT', action = act.AdjustPaneSize { 'Left', 5 } },
     { key = 'PageUp', mods = 'ALT', action = act.AdjustPaneSize { 'Up', 5 } },
     { key = 'PageDown', mods = 'ALT', action = act.AdjustPaneSize { 'Down', 5 } },
+
+    -- Scrollback
+    { key = 'PageUp', mods = 'NONE', action = act.ScrollByPage(-1) },
+    { key = 'PageDown', mods = 'NONE', action = act.ScrollByPage(1) },
 
     -- Copy mode
     { key = 'a', mods = 'ALT', action = act.ActivateCopyMode },

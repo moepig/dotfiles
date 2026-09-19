@@ -72,6 +72,7 @@ tmux の window はタブ、pane はペインへ対応する。WezTerm の既定
 | Alt+方向キー | 隣のペインへ移動。端では折り返さない | `select-pane` |
 | Alt+[, Alt+] | ペインの幅を 5 桁ずつ増減 | `resize-pane -L 5`, `resize-pane -R 5` |
 | Alt+PageUp, Alt+PageDown | ペインの高さを 5 行ずつ増減 | `resize-pane -U 5`, `resize-pane -D 5` |
+| PageUp, PageDown | アクティブなペインを 1 ページずつスクロール | - |
 | Alt+a | コピーモードへ入る | `copy-mode` |
 | コピーモード中の y, Enter | コピーして抜ける | `copy-pipe-and-cancel` |
 | Alt+h | キー割り当ての一覧を表示する | `list-keys` |
@@ -124,7 +125,7 @@ WezTerm はペインごとのヘッダを持たないため、ペインの情報
 
 起動時のウィンドウの大きさは 200 桁 60 行である。WezTerm の既定である 80 桁 24 行の 2.5 倍に当たる。
 
-ウィンドウの右端にはスクロールバーを置く。thumb の位置と長さは、viewport の位置と表示範囲をスクロールバック全体に対して示す。コピーモードでスクロールバックを移動した場合も、移動先に追従する。
+ウィンドウの右端には、アクティブなペインのスクロールバーを 2 cell の幅で置く。thumb の位置と長さは、viewport の位置と表示範囲をスクロールバック全体に対して示す。PageUp、PageDown またはコピーモードでスクロールバックを移動した場合も、移動先に追従する。WezTerm はペインごとのスクロールバーを持たないため、非アクティブなペインのスクロールバーは同時に表示しない。
 
 フォントは Consolas と BIZ UDGothic の組み合わせ、配色は OneHalfDark である。Consolas に含まれない字形を BIZ UDGothic へ退避する。
 
