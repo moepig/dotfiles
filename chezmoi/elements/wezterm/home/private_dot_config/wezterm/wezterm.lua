@@ -184,12 +184,18 @@ config.set_environment_variables = {
 -- ---
 -- Launch menu
 -- ---
--- 起動する接続先とプログラムの一覧。タブバーの新規タブボタンの右クリック、
--- および Alt+Shift+w の ShowLauncherArgs で開く。
+-- 起動する接続先とプログラムの一覧。タブバーの新規タブボタンの左クリックと右クリック、および Alt+Shift+w で開く。
 config.launch_menu = {}
 for _, target in ipairs(spawn_targets) do
     table.insert(config.launch_menu, spawn_command(target))
 end
+
+wezterm.on('new-tab-button-click', function(window, pane, button)
+    if button == 'Left' then
+        window:perform_action(act.ShowLauncherArgs { flags = 'LAUNCH_MENU_ITEMS|DOMAINS' }, pane)
+        return false
+    end
+end)
 
 
 -- ---
