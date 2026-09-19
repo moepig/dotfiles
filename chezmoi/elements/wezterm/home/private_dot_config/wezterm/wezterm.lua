@@ -561,6 +561,25 @@ config.mouse_bindings = {
     },
 }
 
+for _, mods in ipairs { 'NONE', 'SHIFT' } do
+    for streak = 1, 3 do
+        local complete_selection = streak == 1
+            and act.CompleteSelectionOrOpenLinkAtMouseCursor 'ClipboardAndPrimarySelection'
+            or act.CompleteSelection 'ClipboardAndPrimarySelection'
+        table.insert(config.mouse_bindings, {
+            event = { Up = { streak = streak, button = 'Left' } },
+            mods = mods,
+            action = wezterm.action_callback(function(window, pane)
+                local has_selection = window:get_selection_text_for_pane(pane) ~= ''
+                window:perform_action(complete_selection, pane)
+                if has_selection then
+                    window:perform_action(act.EmitEvent 'copy-finished', pane)
+                end
+            end),
+        })
+    end
+end
+
 
 -- ---
 -- Copy mode
