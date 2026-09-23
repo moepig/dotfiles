@@ -1,5 +1,5 @@
 {
-  description = "Home Manager configuration for home-dev-wsl2";
+  description = "Home Manager configurations for home-dev Linux and WSL2";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
@@ -14,7 +14,7 @@
     let
       inherit (nixpkgs) lib;
 
-      # 構成を構築する system。構成は WSL2 のマシンを表すため、1 つに定める
+      # 構成を構築する system。適用先の Linux と WSL2 はともに x86_64-linux である
       system = "x86_64-linux";
 
       # 適用先のユーザ名。flake の評価は既定で環境変数を参照しないため、値の取得には --impure を要する
@@ -26,13 +26,17 @@
 
       # 適用の単位となる構成
       configurations = {
+        home-dev-linux = ./configurations/home-dev-linux.nix;
         home-dev-wsl2 = ./configurations/home-dev-wsl2.nix;
       };
 
       mkConfiguration =
         module:
         home-manager.lib.homeManagerConfiguration {
-          pkgs = nixpkgs.legacyPackages.${system};
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfreePredicate = pkg: lib.getName pkg == "claude-code";
+          };
 
           # feature から flake の入力を参照するために渡す
           extraSpecialArgs = { inherit inputs; };

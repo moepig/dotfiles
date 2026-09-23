@@ -18,7 +18,7 @@
 | `nix flake update <入力名>` | 指定した入力のみを最新の版へ更新する |
 | `nix flake check --impure` | 出力を評価し、構成が壊れていないことを確認する |
 
-`--flake` へ与える値は `<flake のパス>#<名前>` である。flake はリポジトリ直下ではなく `nix/` にあるため、リポジトリの外から実行する場合は `~/src/dotfiles/nix#home-dev-wsl2` のようにパスを伴う。
+`--flake` へ与える値は `<flake のパス>#<名前>` である。Linux では `home-dev-linux`、WSL2 では `home-dev-wsl2` を名前に指定する。flake はリポジトリ直下ではなく `nix/` にあるため、リポジトリの外から実行する場合は `~/src/dotfiles/nix#home-dev-linux` のようにパスを伴う。
 
 構成を評価するコマンドは `--impure` を伴う。適用先のユーザ名を環境変数から取るためである。ユーザ名の扱いは、[Nix による構成の管理](configuration.md) を参照。
 
@@ -39,7 +39,7 @@ nix 層が管理するのはパッケージの導入である。設定ファイ�
 
 パッケージを追加する場合は、そのパッケージが表す対象の feature を作り、`home.packages` へ指定する。既存の feature が同じ対象を表している場合に限り、その `home.packages` へ加える。
 
-feature を追加する場合は、`features/<名前>/default.nix` を作り、取り込む構成の `imports` へ追加する。feature の粒度の指針は、[Nix による構成の管理](configuration.md) を参照。
+feature を追加する場合は、`features/<名前>/default.nix` を作り、取り込む構成の `imports` へ追加する。自宅の開発用マシンの Linux と WSL2 に共通して導入する feature は `configurations/home-dev.nix` の `imports` へ追加する。feature の粒度の指針は、[Nix による構成の管理](configuration.md) を参照。
 
 リポジトリの外にあるファイルを参照する場合は、`flake.nix` の `inputs` へ追加する。feature からはモジュールの引数 `inputs` として参照する。版は `flake.lock` が固定する。
 

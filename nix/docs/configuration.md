@@ -19,6 +19,7 @@
 
 | 名前 | 表すマシン |
 | --- | --- |
+| `home-dev-linux` | 自宅の開発用マシンの Linux 環境 |
 | `home-dev-wsl2` | 自宅の開発用マシンの WSL2 環境 |
 
 対象の system は `x86_64-linux` である。flake の評価は、評価するマシンの system を参照しない。
@@ -36,7 +37,7 @@ flake の評価は、既定では環境変数を参照しない。構成を評�
 
 ## 構成と feature
 
-`configurations/` の各ファイルは Home Manager のモジュールであり、`imports` で feature を取り込む。定めるのは、取り込む feature の一覧のみである。
+`configurations/` の各ファイルは Home Manager のモジュールである。`home-dev-linux.nix` と `home-dev-wsl2.nix` は共通の `home-dev.nix` を取り込み、`home-dev.nix` が feature の一覧を定める。
 
 feature も同じく Home Manager のモジュールである。パッケージの導入を、再利用できる単位へまとめたものである。
 
@@ -55,11 +56,14 @@ flake の入力は `extraSpecialArgs` を経由して feature へ渡す。featur
 | actionlint | GitHub Actions workflow の静的解析ツール |
 | bats | Bash のテストフレームワーク |
 | chezmoi | 設定ファイルを配置するツール |
+| claude-code | Claude Code |
+| codex | Codex CLI |
 | common | どの構成にも取り込む基盤の設定。Nix の設定と作業用ディレクトリの作成 |
 | dnsutils | DNS の問い合わせコマンド |
 | gh | GitHub CLI |
 | go | Go |
 | jq | JSON の問い合わせコマンド |
+| nodejs | Node.js と npm |
 | pre-commit | Git のフックを定義ファイルから管理するツール |
 | python | Python |
 | tmux | 端末マルチプレクサと、クリップボードを操作するコマンド |
@@ -75,16 +79,21 @@ feature が `home.packages` へ指定するパッケージを、以下にまと�
 | actionlint | GitHub Actions workflow の静的解析ツール | actionlint |
 | bats | Bash のテストフレームワーク | bats |
 | chezmoi | 設定ファイルを配置するツール | chezmoi |
+| claude-code | Claude Code | claude-code |
+| codex | Codex CLI | codex |
 | dnsutils | dig をはじめとする DNS の問い合わせコマンド | dnsutils |
 | gh | GitHub CLI | gh |
 | go | Go | go |
 | jq | JSON の問い合わせコマンド | jq |
+| nodejs | Node.js と npm | nodejs |
 | pre-commit | Git のフックを定義ファイルから管理するツール | pre-commit |
 | python3 | Python | python |
 | tmux | 端末マルチプレクサ | tmux |
 | xclip | X11 のクリップボードを操作するコマンド。Linux でのみ導入する | tmux |
 
 このほか、`programs.home-manager` を有効にすることで `home-manager` コマンドを導入する。
+
+Claude Code は Nix で unfree パッケージとして扱われる。flake は `claude-code` のみ unfree パッケージとしての評価を許可する。
 
 tmux のプラグインは `home.packages` へは指定しない。取得は chezmoi 層の tmux element が行う。取得の方法は、[tmux の設定](../../chezmoi/elements/tmux/README.md) を参照。
 

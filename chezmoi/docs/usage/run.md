@@ -9,7 +9,7 @@ runner は OS ごとに 2 つある。いずれもリポジトリの `chezmoi/` 
 | ファイル | 実行する環境 |
 | --- | --- |
 | `run_chezmoi.ps1` | Windows |
-| `run_chezmoi.sh` | WSL2 |
+| `run_chezmoi.sh` | Linux、WSL2 |
 
 2 つは対象の解決の規則と表示を共有する。異なるのは、パラメータの記法と、profile の記録および状態ファイルの位置のみである。位置は、[導入](setup.md) を参照。
 
@@ -54,16 +54,19 @@ profile が選ばない element を指定した場合、および定義に無い
 
 ```
 ==> profile (現在: home-dev-wsl2)
+      home-dev-linux 自宅の開発用マシンの Linux 環境
+                     element: bash, wezterm-shell, tmux, codex
       home-dev-win   自宅の開発用マシンの Windows 環境
                      element: wezterm, vscode
       home-dev-wsl2  自宅の開発用マシンの WSL2 環境
-                     element: bash, wezterm-shell, tmux
+                     element: bash, wezterm-shell, tmux, codex
       work-win       仕事用マシンの Windows 環境
                      element: wezterm, vscode
       work-wsl2      仕事用マシンの WSL2 環境
-                     element: bash, wezterm-shell, tmux
+                     element: bash, wezterm-shell, tmux, codex
 ==> element
     * bash           対話シェルの初期化。読み込みの記述を ~/.bashrc へ統合する
+    * codex          Codex の設定。~/.codex/config.toml の管理対象キーのみを統合する
     * tmux           tmux の設定。ファイル全体を管理し、プラグインを TPM で取得する
       vscode         VS Code のユーザ設定。管理対象のキーのみを既存の内容へ統合する
       wezterm        WezTerm の設定。ファイル全体を管理する

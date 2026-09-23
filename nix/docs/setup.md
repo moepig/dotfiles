@@ -1,12 +1,12 @@
 # セットアップ
 
-本ドキュメントは、home-dev-wsl2 へ nix 層を導入する手順と、設定ファイルの管理を chezmoi 層へ移した際の後始末を扱う。
+本ドキュメントは、home-dev-linux と home-dev-wsl2 へ nix 層を導入する手順と、設定ファイルの管理を chezmoi 層へ移した際の後始末を扱う。
 
 リポジトリの実体は `~/src/dotfiles` に置く。flake はその配下の `nix/` である。適用に要するのは flake のパスのみであり、既定のディレクトリへの配置や参照の登録は行わない。
 
 ## 導入
 
-WSL2 上の Debian 系ディストリビューションを対象とする。
+Debian 系の Linux と WSL2 ディストリビューションを対象とする。適用先の構成名は、Linux では `home-dev-linux`、WSL2 では `home-dev-wsl2` である。
 
 1. 前提となるコマンドを導入する。
 
@@ -26,17 +26,17 @@ WSL2 上の Debian 系ディストリビューションを対象とする。
     git clone https://github.com/moepig/dotfiles ~/src/dotfiles
     ```
 
-4. 構成を適用する。
+4. 構成を適用する。以下は Linux のコマンドである。WSL2 では `home-dev-linux` を `home-dev-wsl2` に替える。
 
     ```bash
     cd ~/src/dotfiles/nix
-    nix --extra-experimental-features 'nix-command flakes' run home-manager/master -- switch --flake .#home-dev-wsl2 --impure
+    nix --extra-experimental-features 'nix-command flakes' run home-manager/master -- switch --flake .#home-dev-linux --impure
     ```
 
-5. 以後の適用は、導入された `home-manager` コマンドで行う。
+5. 以後の適用は、導入された `home-manager` コマンドで行う。WSL2 では構成名を `home-dev-wsl2` に替える。
 
     ```bash
-    home-manager switch --flake ~/src/dotfiles/nix#home-dev-wsl2 --impure
+    home-manager switch --flake ~/src/dotfiles/nix#home-dev-linux --impure
     ```
 
 > [!IMPORTANT]
@@ -52,7 +52,7 @@ WSL2 上の Debian 系ディストリビューションを対象とする。
 
 nix 層が設定ファイルを配置していた構成からは、次の手順で移行する。設定ファイルの配置は chezmoi 層が行う。
 
-1. 構成を適用し直す。前の世代で配置していたシンボリックリンクは、この時点で削除される。
+1. 構成を適用し直す。前の世代で配置していたシンボリックリンクは、この時点で削除される。Linux では構成名を `home-dev-linux` に替える。
 
     ```bash
     home-manager switch --flake ~/src/dotfiles/nix#home-dev-wsl2 --impure

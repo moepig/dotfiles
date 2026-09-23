@@ -29,11 +29,11 @@ chezmoi 層の構成を、以下に示す。
 ```text
 chezmoi/
 ├── run_chezmoi.ps1               エントリポイント (Windows)
-├── run_chezmoi.sh                エントリポイント (WSL2)
+├── run_chezmoi.sh                エントリポイント (Linux、WSL2)
 ├── init.ps1                      profile を対話的に選ぶ入口 (Windows)
-├── init.sh                       profile を対話的に選ぶ入口 (WSL2)
+├── init.sh                       profile を対話的に選ぶ入口 (Linux、WSL2)
 ├── apply.ps1                     適用の対象を対話的に選ぶ入口 (Windows)
-├── apply.sh                      適用の対象を対話的に選ぶ入口 (WSL2)
+├── apply.sh                      適用の対象を対話的に選ぶ入口 (Linux、WSL2)
 ├── chezmoi.toml                  chezmoi へ渡す設定
 ├── docs/
 ├── elements/
@@ -49,7 +49,7 @@ chezmoi/
 
 ## runner の二重化
 
-runner は Windows 用と WSL2 用の 2 つを持つ。profile が Windows の環境と WSL2 の環境の双方を表すためである。
+runner は Windows 用と Linux 系環境用の 2 つを持つ。profile が Windows、Linux、WSL2 の環境を表すためである。
 
 2 つは対象の解決の規則を共有し、element と profile の宣言も共有する。実装を分けるのは、Windows PowerShell 5.1 と bash のいずれもが、他方の実行環境を前提にできないためである。
 

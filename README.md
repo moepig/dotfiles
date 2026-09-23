@@ -2,9 +2,9 @@
 
 本ドキュメントは、リポジトリが管理する範囲、2 つの層の役割、およびディレクトリとファイルの配置を示す。
 
-4 つの環境のホームディレクトリを管理する。自宅の開発用マシンと仕事用マシンの、それぞれの WSL2 と Windows である。
+5 つの環境のホームディレクトリを管理する。自宅の開発用マシンの Linux、WSL2、Windows と、仕事用マシンの WSL2、Windows である。
 
-管理は 2 つの層に分かれる。nix 層は [Nix](https://nixos.org/) と [Home Manager](https://nix-community.github.io/home-manager/) でパッケージを導入し、chezmoi 層は [chezmoi](https://www.chezmoi.io/) で設定ファイルを配置する。nix 層の適用先は home-dev-wsl2 のみであり、chezmoi 層は 4 つの環境すべてを適用先とする。
+管理は 2 つの層に分かれる。nix 層は [Nix](https://nixos.org/) と [Home Manager](https://nix-community.github.io/home-manager/) でパッケージを導入し、chezmoi 層は [chezmoi](https://www.chezmoi.io/) で設定ファイルを配置する。nix 層の適用先は home-dev-linux と home-dev-wsl2 であり、chezmoi 層は 5 つの環境すべてを適用先とする。
 
 層の境界と環境ごとの適用内容は、[概要](docs/overview.md) を参照。
 
@@ -22,6 +22,8 @@
 │   ├── flake.nix                 入力の固定と homeConfigurations の定義
 │   ├── flake.lock                入力の固定結果
 │   ├── configurations/           適用の単位となる構成
+│   │   ├── home-dev.nix
+│   │   ├── home-dev-linux.nix
 │   │   └── home-dev-wsl2.nix
 │   ├── features/                 構成が取り込む機能の単位
 │   │   └── <feature 名>/default.nix
@@ -31,11 +33,11 @@
 │       └── configuration.md      flake、構成と feature、導入するパッケージ
 └── chezmoi/                      設定ファイルの配置
     ├── run_chezmoi.ps1           エントリポイント (Windows)
-    ├── run_chezmoi.sh            エントリポイント (WSL2)
+    ├── run_chezmoi.sh            エントリポイント (Linux、WSL2)
     ├── init.ps1                  profile を対話的に選ぶ入口 (Windows)
-    ├── init.sh                   profile を対話的に選ぶ入口 (WSL2)
+    ├── init.sh                   profile を対話的に選ぶ入口 (Linux、WSL2)
     ├── apply.ps1                 適用の対象を対話的に選ぶ入口 (Windows)
-    ├── apply.sh                  適用の対象を対話的に選ぶ入口 (WSL2)
+    ├── apply.sh                  適用の対象を対話的に選ぶ入口 (Linux、WSL2)
     ├── chezmoi.toml              chezmoi へ渡す設定
     ├── elements/                 適用の選択の単位
     │   └── <element 名>/

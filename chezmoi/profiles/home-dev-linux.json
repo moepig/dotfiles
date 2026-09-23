@@ -1,0 +1,4 @@
+{
+    "description": "自宅の開発用マシンの Linux 環境",
+    "elements": ["bash", "wezterm-shell", "tmux", "codex"]
+}
