@@ -72,12 +72,13 @@ tmux の window はタブ、pane はペインへ対応する。WezTerm の既定
 | Alt+方向キー | 隣のペインへ移動。端では折り返さない | `select-pane` |
 | Alt+[, Alt+] | ペインの幅を 5 桁ずつ増減 | `resize-pane -L 5`, `resize-pane -R 5` |
 | Alt+PageUp, Alt+PageDown | ペインの高さを 5 行ずつ増減 | `resize-pane -U 5`, `resize-pane -D 5` |
-| PageUp, PageDown | アクティブなペインを 1 ページずつスクロール | - |
+| Shift+PageUp, Shift+PageDown | アクティブなペインを 1 ページずつスクロール | - |
 | Alt+a | コピーモードへ入る | `copy-mode` |
+| コピーモード中の PageUp, PageDown | 1 ページずつ移動する | - |
 | コピーモード中の y, Enter | コピーして抜ける | `copy-pipe-and-cancel` |
 | Alt+h | キー割り当ての一覧を表示する | `list-keys` |
 
-WezTerm の `copy_mode` キーテーブルは vi のキー操作を既定に持ち、tmux の `mode-keys vi` に対応する。既定でコピーへ割り当てられているのは `y` のみであるため、`y` と `Enter` を同じ動作へ差し替えている。コピー先は Windows のクリップボードである。コピー後はタブバーの右端に `copied!` を 2 秒間表示する。
+WezTerm の `copy_mode` キーテーブルは vi のキー操作を既定に持ち、tmux の `mode-keys vi` に対応する。通常時の PageUp と PageDown は接続先のプログラムへ渡し、`less` などでページ移動に使用できる。Shift+PageUp と Shift+PageDown は WezTerm のスクロールバックを移動する。コピーモード中は PageUp と PageDown でスクロールバックを移動する。既定でコピーへ割り当てられているのは `y` のみであるため、`y` と `Enter` を同じ動作へ差し替えている。コピー先は Windows のクリップボードである。コピー後はタブバーの右端に `copied!` を 2 秒間表示する。
 
 Alt+h が開く一覧は、上の表と同じ内容を区分ごとに並べたものである。表示は WezTerm の InputSelector によるオーバーレイであり、Esc で閉じる。項目の選択は何も行わない。
 
@@ -125,9 +126,9 @@ WezTerm はペインごとのヘッダを持たないため、ペインの情報
 
 起動時のウィンドウの大きさは 200 桁 60 行である。WezTerm の既定である 80 桁 24 行の 2.5 倍に当たる。
 
-ウィンドウの右端には、アクティブなペインのスクロールバーを 2 cell の幅で置く。thumb の位置と長さは、viewport の位置と表示範囲をスクロールバック全体に対して示す。PageUp、PageDown またはコピーモードでスクロールバックを移動した場合も、移動先に追従する。WezTerm はペインごとのスクロールバーを持たないため、非アクティブなペインのスクロールバーは同時に表示しない。
+ウィンドウの右端には、アクティブなペインのスクロールバーを 2 cell の幅で置く。thumb の位置と長さは、viewport の位置と表示範囲をスクロールバック全体に対して示す。Shift+PageUp、Shift+PageDown またはコピーモードでスクロールバックを移動した場合も、移動先に追従する。WezTerm はペインごとのスクロールバーを持たないため、非アクティブなペインのスクロールバーは同時に表示しない。
 
-フォントは Consolas と BIZ UDGothic の組み合わせ、配色は OneHalfDark である。Consolas に含まれない字形を BIZ UDGothic へ退避する。
+フォントは Consolas と BIZ UDGothic の組み合わせ、配色は OneHalfDark である。コピーモード中は配色の明度を保ち、端末の背景を紫寄りに変える。Consolas に含まれない字形を BIZ UDGothic へ退避する。
 
 グリフのラスタライズには FreeType を用いる。WezTerm は DirectWrite を用いないため、Windows の他のプログラムの既定である ClearType とは見えかたが異なる。ClearType に最も近い組み合わせとして、ヒンティングによる字形の変形を縦方向のみに限る `Light`、および横に並ぶ RGB のサブピクセルを単位として濃度を求める `HorizontalLcd` を用いる。
 
