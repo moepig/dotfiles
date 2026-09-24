@@ -826,9 +826,9 @@ end
 -- ---
 -- Status
 -- ---
--- tmux の status-format に置いていた表示に対応する。右端へ、ブランチ名、ペイン一覧、
--- 接続先の一覧をこの順で並べる。
--- 左端にはコピーモード中だけモード名を置く。
+-- tmux の status-format に置いていた表示に対応する。右端へ、通知、コピーモード中の表示、
+-- ブランチ名、ペイン一覧、接続先の一覧をこの順で並べる。
+-- 左端には何も置かず、タブを左端から並べる。
 -- キー割り当ての一覧は常時は置かない。タブバーが 1 行しか無く、ペイン一覧とタブが同じ行を
 -- 分け合うためである。一覧の表示は Alt+h が担う。
 
@@ -858,6 +858,27 @@ local function notice_status()
         { Attribute = { Intensity = 'Bold' } },
         { Foreground = { AnsiColor = 'Green' } },
         { Text = notice },
+        { Attribute = { Intensity = 'Normal' } },
+        { Text = '   ' },
+    }
+end
+
+-- コピーモード中は、ブランチ名の左にモード名を表示する。
+-- in_copy_mode: コピーモード中であれば true
+-- 戻り値: wezterm.format による書式付きの文字列。通常時は空文字列
+local function copy_mode_status(in_copy_mode)
+    if not in_copy_mode then
+        return ''
+    end
+
+    return wezterm.format {
+        { Background = { Color = palette.bar_bg } },
+        { Text = ' ' },
+        { Background = { Color = palette.accent } },
+        { Foreground = { Color = palette.on_fill } },
+        { Attribute = { Intensity = 'Bold' } },
+        { Text = ' COPY MODE ' },
+        { Background = { Color = palette.bar_bg } },
         { Attribute = { Intensity = 'Normal' } },
         { Text = '   ' },
     }
@@ -963,7 +984,7 @@ local function status_hints(window)
     return wezterm.format(items)
 end
 
--- コピーモードの状態に応じて背景色と左端の表示を切り替え、右端の表示を組み立てて置く。
+-- コピーモードの状態に応じて背景色を切り替え、右端の表示を組み立てて置く。左端には何も置かない。
 -- update-status による定期的な更新のほか、通知の表示と消去が、その時点で呼ぶ。
 -- window: Window
 -- pane: アクティブなペインの Pane
@@ -976,20 +997,10 @@ local function update_status(window, pane)
         window:set_config_overrides(overrides)
     end
 
-    if in_copy_mode then
-        window:set_left_status(wezterm.format {
-            { Background = { Color = palette.accent } },
-            { Foreground = { Color = palette.on_fill } },
-            { Attribute = { Intensity = 'Bold' } },
-            { Text = ' COPY MODE ' },
-            { Background = { Color = palette.bar_bg } },
-            { Text = ' ' },
-        })
-    else
-        window:set_left_status('')
-    end
+    window:set_left_status('')
     window:set_right_status(
-        notice_status() .. branch_status(pane) .. pane_list(window) .. status_hints(window)
+        notice_status() .. copy_mode_status(in_copy_mode) .. branch_status(pane)
+            .. pane_list(window) .. status_hints(window)
     )
 end
 
