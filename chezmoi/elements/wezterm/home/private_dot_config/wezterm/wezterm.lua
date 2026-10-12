@@ -34,6 +34,7 @@ local palette = {
     on_fill = '#21252b',
     dim = '#98a0b0',
     accent = '#c678dd',
+    notification = '#e06c75',
     split = '#454b57',
 }
 
@@ -656,18 +657,47 @@ config.colors = {
 
 
 -- ---
+-- Pane notifications
+-- ---
+
+-- ペイン ID ごとの BEL の通知。temporary が true の通知は時間で消え、それ以外はペインの選択で消える。設定の再読み込みで失われる。
+local pane_notifications = {}
+
+-- フォーカス中のペインに届いた通知を表示する秒数。
+local pane_notification_seconds = 3
+
+-- 閉じたペインとフォーカス中のペインの通知を消す。
+-- window: Window
+-- pane: アクティブなペインの Pane
+local function clear_pane_notifications(window, pane)
+    local focused_id = window:is_focused() and pane:pane_id() or nil
+    for pane_id, notification in pairs(pane_notifications) do
+        if wezterm.mux.get_pane(pane_id) == nil
+            or (pane_id == focused_id and not notification.temporary) then
+            pane_notifications[pane_id] = nil
+        end
+    end
+end
+
+
+-- ---
 -- Tab title
 -- ---
--- カレントディレクトリ名のみを置き、接続先の種別はその色で表す。アクティブなタブは接続先の色を
--- 背景へ、他のタブは文字へ置き、両者を塗り分けで隔てる。明度を落としたタブを作らないことで、
--- どのタブのカレントディレクトリ名も同じ読みやすさとする。アクティブなタブとの差は塗り分けが
--- 付けるため、括弧や記号は添えない。
+-- カレントディレクトリ名を置き、接続先の種別はその色で表す。アクティブなタブは接続先の色を背景へ、他のタブは文字へ置き、両者を塗り分けで隔てる。明度を落としたタブを作らないことで、どのタブのカレントディレクトリ名も同じ読みやすさとする。配下のいずれかのペインに通知があれば、名前の前に ! を表示する。
 -- カレントディレクトリ名は tmux の automatic-rename-format "#{b:pane_current_path}" に対応する。
 wezterm.on('format-tab-title', function(tab, tabs, panes, conf, hover, max_width)
     local state = state_of_info(tab.active_pane)
     local target = target_of(state)
-    -- タブの左の空白 1 文字分と、カレントディレクトリ名の左右の空白 1 文字分を差し引いた幅へ収める。
-    local title = wezterm.truncate_right(cwd_label(state), math.max(max_width - 3, 1))
+    local has_notification = false
+    for _, pane in ipairs(tab.panes) do
+        if pane_notifications[pane.pane_id] ~= nil then
+            has_notification = true
+            break
+        end
+    end
+    local marker = has_notification and '! ' or ''
+    -- タブの左と名前の左右の空白、および通知マークを差し引いた幅へ収める。
+    local title = wezterm.truncate_right(cwd_label(state), math.max(max_width - 3 - #marker, 0))
 
     -- アクティブなタブは接続先の色を背景色とし、文字色を暗い側とする。アクティブでないタブは
     -- タブの領域の色を背景色とし、接続先の色を文字色とする。マウスが乗っているタブは背景色のみを変える。
@@ -687,7 +717,15 @@ wezterm.on('format-tab-title', function(tab, tabs, panes, conf, hover, max_width
         { Background = { Color = bg } },
         { Attribute = { Intensity = tab.is_active and 'Bold' or 'Normal' } },
         { Foreground = { Color = fg } },
-        { Text = ' ' .. title .. ' ' },
+        { Text = ' ' },
+        { Background = { Color = has_notification and palette.notification or bg } },
+        { Foreground = { Color = has_notification and palette.on_fill or fg } },
+        { Attribute = { Intensity = has_notification and 'Bold' or (tab.is_active and 'Bold' or 'Normal') } },
+        { Text = marker },
+        { Background = { Color = bg } },
+        { Foreground = { Color = fg } },
+        { Attribute = { Intensity = tab.is_active and 'Bold' or 'Normal' } },
+        { Text = title .. ' ' },
     }
 end)
 
@@ -918,6 +956,7 @@ end
 -- ズームしているペインには Z を付ける。
 -- 短縮名の文字色は接続先の種別を表し、タブおよび接続先の一覧と同じ色である。
 -- アクティブでないペインは、短縮名にもカレントディレクトリ名にも彩度を落とした色を用いる。
+-- 通知があるペインは、カレントディレクトリ名の前に ! を表示する。
 -- WezTerm はペインごとのヘッダを持たないため、ペインの情報はこの一覧が担う。
 -- window: Window
 -- 戻り値: wezterm.format による書式付きの文字列。末尾に、続く表示との間隔を含む
@@ -945,10 +984,19 @@ local function pane_list(window)
             label = label .. ' Z'
         end
 
-        table.insert(items, { Background = { Color = info.is_active and palette.active_bg or palette.list_bg } })
+        local bg = info.is_active and palette.active_bg or palette.list_bg
+        table.insert(items, { Background = { Color = bg } })
         table.insert(items, { Attribute = { Intensity = info.is_active and 'Bold' or 'Normal' } })
         table.insert(items, { Foreground = { Color = info.is_active and target.color or target.dim_color } })
         table.insert(items, { Text = ' ' .. target.short .. ' ' })
+        if pane_notifications[info.pane:pane_id()] ~= nil then
+            table.insert(items, { Background = { Color = palette.notification } })
+            table.insert(items, { Foreground = { Color = palette.on_fill } })
+            table.insert(items, { Attribute = { Intensity = 'Bold' } })
+            table.insert(items, { Text = '! ' })
+            table.insert(items, { Background = { Color = bg } })
+            table.insert(items, { Attribute = { Intensity = info.is_active and 'Bold' or 'Normal' } })
+        end
         table.insert(items, { Foreground = { Color = info.is_active and palette.fg or palette.dim } })
         table.insert(items, { Text = label .. ' ' })
     end
@@ -994,6 +1042,7 @@ end
 -- window: Window
 -- pane: アクティブなペインの Pane
 local function update_status(window, pane)
+    clear_pane_notifications(window, pane)
     local in_copy_mode = window:active_key_table() == 'copy_mode'
     local overrides = window:get_config_overrides() or {}
     local scheme = in_copy_mode and copy_mode_scheme or nil
@@ -1010,6 +1059,40 @@ local function update_status(window, pane)
 end
 
 wezterm.on('update-status', update_status)
+
+-- BEL の通知をペインごとに記録し、表示を更新する。
+-- window: Window
+-- pane: BEL の通知元の Pane
+wezterm.on('bell', function(window, pane)
+    local pane_window = pane:window()
+    if pane_window == nil or pane_window:window_id() ~= window:window_id() then
+        return
+    end
+    local pane_id = pane:pane_id()
+    local active_pane = window:active_pane()
+    local notification = {
+        temporary = window:is_focused() and active_pane:pane_id() == pane_id,
+    }
+    pane_notifications[pane_id] = notification
+    -- 同じ status の再設定ではタブ名を更新しないため、文字を持たない書式を左端へ設定する。続く更新で空文字列へ戻す。
+    -- https://github.com/wezterm/wezterm/blob/20240203-110809-5046fc22/wezterm-gui/src/termwindow/mod.rs
+    -- 「if status != self.left_status」「self.update_title_post_status();」
+    window:set_left_status(wezterm.format { { Attribute = { Intensity = 'Normal' } } })
+    update_status(window, active_pane)
+
+    if notification.temporary then
+        wezterm.time.call_after(pane_notification_seconds, function()
+            -- 古いタイマーでは、後から届いた通知を消さない。
+            if pane_notifications[pane_id] ~= notification then
+                return
+            end
+            pane_notifications[pane_id] = nil
+            if wezterm.mux.get_pane(pane_id) ~= nil then
+                update_status(window, window:active_pane())
+            end
+        end)
+    end
+end)
 
 -- 通知を表示する。表示は notice_seconds の後に消える。
 -- update-status は 1 秒ごとであり、その次の更新を待つと操作との間が空くため、
