@@ -130,6 +130,8 @@ WezTerm はペインごとのヘッダを持たないため、ペインの情報
 
 フォントは Consolas と BIZ UDGothic の組み合わせ、配色は OneHalfDark である。コピーモード中は配色の明度を保ち、端末の背景を紫寄りに変える。Consolas に含まれない字形を BIZ UDGothic へ退避する。
 
+ANSI の bright black (色番号 8) は、通常時とコピーモードの背景上で読める灰色 (`#98a0b0`) に上書きする。Terraform の `unchanged` の表示にもこの色を用いる。
+
 グリフのラスタライズには FreeType を用いる。WezTerm は DirectWrite を用いないため、Windows の他のプログラムの既定である ClearType とは見えかたが異なる。ClearType に最も近い組み合わせとして、ヒンティングによる字形の変形を縦方向のみに限る `Light`、および横に並ぶ RGB のサブピクセルを単位として濃度を求める `HorizontalLcd` を用いる。
 
 > [!NOTE]

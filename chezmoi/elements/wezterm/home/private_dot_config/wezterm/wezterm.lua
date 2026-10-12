@@ -217,6 +217,10 @@ config.freetype_render_target = 'HorizontalLcd'
 
 config.color_scheme = 'OneHalfDark'
 
+-- ANSI の bright black (色番号 8) は、通常時とコピーモードの背景上で読める灰色とする。
+local bright_colors = wezterm.color.get_builtin_schemes()[config.color_scheme].brights
+bright_colors[1] = '#98a0b0'
+
 -- コピーモードでは端末の背景だけを紫寄りに変え、配色の明度と他の色を保つ。
 local copy_mode_scheme = config.color_scheme .. ' Copy Mode'
 local copy_mode_colors = wezterm.color.get_builtin_schemes()[config.color_scheme]
@@ -638,6 +642,7 @@ config.tab_max_width = 28
 -- タブの背景色と文字色は format-tab-title が返す書式が定めるため、active_tab と inactive_tab は
 -- 書式を組み立てられない場合の値として置く。
 config.colors = {
+    brights = bright_colors,
     scrollbar_thumb = palette.active_bg,
     tab_bar = {
         background = palette.bar_bg,
